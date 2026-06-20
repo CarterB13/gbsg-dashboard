@@ -436,6 +436,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
         </select>
       </div>
       <div class="filter-group">
+        <span class="filter-label">From</span>
+        <input type="date" id="dc-f-from" value="2026-02-06" onchange="applyDcFilters()">
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">To</span>
+        <input type="date" id="dc-f-to" value="2026-06-18" onchange="applyDcFilters()">
+      </div>
+      <div class="filter-group">
         <span class="filter-label">Filter by level</span>
         <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding-top:2px">
           <div class="level-pill all active" onclick="filterDcLevel('all')" id="lp-all">All</div>
@@ -813,13 +821,32 @@ function renderCoAll() {
 }
 
 // --- DEFCON FILTERS ---
+function parseDcDate(str) {
+  if (!str) return null;
+  try {
+    const cleaned = str.replace(/(\d+)(st|nd|rd|th)/,'$1').replace(/ PST| PDT/,'');
+    return new Date(cleaned);
+  } catch(e) { return null; }
+}
+
 function applyDcFilters() {
   const df = document.getElementById('dc-f-driver').value;
   const bf = document.getElementById('dc-f-by').value;
+  const fd = document.getElementById('dc-f-from').value;
+  const td = document.getElementById('dc-f-to').value;
+  const fromDate = fd ? new Date(fd + 'T00:00:00') : null;
+  const toDate = td ? new Date(td + 'T23:59:59') : null;
   dcFiltered = DEFCONS.filter(r => {
     if (df && r.driver !== df) return false;
     if (bf && r.by !== bf) return false;
     if (dcLevelFilter !== 'all' && r.level !== dcLevelFilter) return false;
+    if (fromDate || toDate) {
+      const rd = parseDcDate(r.start);
+      if (rd) {
+        if (fromDate && rd < fromDate) return false;
+        if (toDate && rd > toDate) return false;
+      }
+    }
     return true;
   });
   dcPage = 0;
@@ -830,6 +857,8 @@ function applyDcFilters() {
 function resetDcFilters() {
   document.getElementById('dc-f-driver').value = '';
   document.getElementById('dc-f-by').value = '';
+  document.getElementById('dc-f-from').value = '2026-02-06';
+  document.getElementById('dc-f-to').value = '2026-06-18';
   dcLevelFilter = 'all';
   ['all','D1','D2','D3','D4','R1'].forEach(l => {
     const el = document.getElementById('lp-' + l);
