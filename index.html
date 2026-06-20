@@ -435,6 +435,17 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
           <option>Carter Bishara</option><option>Akash</option><option>Oliver Franko</option>
         </select>
       </div>
+      <div class="filter-group">
+        <span class="filter-label">Filter by level</span>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding-top:2px">
+          <div class="level-pill all active" onclick="filterDcLevel('all')" id="lp-all">All</div>
+          <div class="level-pill d1" onclick="filterDcLevel('D1')" id="lp-D1">D1</div>
+          <div class="level-pill d2" onclick="filterDcLevel('D2')" id="lp-D2">D2</div>
+          <div class="level-pill d3" onclick="filterDcLevel('D3')" id="lp-D3">D3</div>
+          <div class="level-pill d4" onclick="filterDcLevel('D4')" id="lp-D4">D4</div>
+          <div class="level-pill r1" onclick="filterDcLevel('R1')" id="lp-R1">R1</div>
+        </div>
+      </div>
       <div class="filter-actions">
         <span class="filter-result" id="dc-f-result"></span>
         <button class="btn" onclick="resetDcFilters()">Reset</button>
@@ -457,16 +468,6 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
     <div class="insight-card" style="margin-bottom:20px">
       <div class="card-header"><span class="card-title">Top 5 staff groups by defcon count</span></div>
       <ul class="insight-list" id="dc-sg-list"></ul>
-    </div>
-
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-      <span style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Filter by level:</span>
-      <div class="level-pill all active" onclick="filterDcLevel('all')" id="lp-all">All</div>
-      <div class="level-pill d1" onclick="filterDcLevel('D1')" id="lp-D1">D1</div>
-      <div class="level-pill d2" onclick="filterDcLevel('D2')" id="lp-D2">D2</div>
-      <div class="level-pill d3" onclick="filterDcLevel('D3')" id="lp-D3">D3</div>
-      <div class="level-pill d4" onclick="filterDcLevel('D4')" id="lp-D4">D4</div>
-      <div class="level-pill r1" onclick="filterDcLevel('R1')" id="lp-R1">R1</div>
     </div>
 
     <div class="table-section">
@@ -861,7 +862,6 @@ function renderDcKPIs() {
   const sgCount = {};
   dcFiltered.forEach(r => { if(r.sg) sgCount[r.sg]=(sgCount[r.sg]||0)+1; });
   const topSG = Object.entries(sgCount).sort((a,b)=>b[1]-a[1])[0]||['—',0];
-  const topSGShort = topSG[0].replace('SBG_','').replace('SBSEG_','').replace('MC_NR_','');
 
   const kpis = [
     {color:'blue', label:'Total defcons', val:total.toLocaleString(), sub:`across all staff groups`},
@@ -871,15 +871,20 @@ function renderDcKPIs() {
     {color:'teal', label:'R1 reversals', val:levels.R1, sub:`overstaffing / low demand`},
     {color:'purple', label:'Demand ITT', val:demandITT, sub:`<b>${total?Math.round(demandITT/total*100):0}%</b> of drivers`},
     {color:'amber', label:'Supply ITT', val:supplyITT, sub:`<b>${total?Math.round(supplyITT/total*100):0}%</b> of drivers`},
-    {color:'blue', label:'Top staff group', val:topSGShort.length > 14 ? topSGShort.slice(0,14)+'…' : topSGShort, sub:`<b>${topSG[1]}</b> defcons`},
   ];
 
+  const topSGFull = topSG[0];
   document.getElementById('dc-kpis').innerHTML = kpis.map(k=>`
     <div class="kpi-card ${k.color}">
       <div class="kpi-label">${k.label}</div>
       <div class="kpi-val" style="font-size:${k.val.toString().length>8?'18px':'28px'}">${k.val}</div>
       <div class="kpi-sub">${k.sub}</div>
-    </div>`).join('');
+    </div>`).join('') + `
+    <div class="kpi-card blue" style="position:relative" title="${topSGFull}">
+      <div class="kpi-label">Top staff group</div>
+      <div class="kpi-val" style="font-size:11px;font-family:monospace;font-weight:600;line-height:1.5;word-break:break-all;white-space:normal;margin-top:4px">${topSGFull}</div>
+      <div class="kpi-sub"><b>${topSG[1]}</b> defcons</div>
+    </div>`;
 }
 
 // --- DEFCON CHARTS ---
