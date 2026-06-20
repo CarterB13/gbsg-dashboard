@@ -108,7 +108,37 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 /* KPI GRID */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px}
-.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;position:relative;overflow:hidden;cursor:default}
+.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;position:relative;overflow:hidden;cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.kpi-card.blue:hover{border-color:var(--blue)}
+.kpi-card.green:hover{border-color:var(--green)}
+.kpi-card.amber:hover{border-color:var(--amber)}
+.kpi-card.red:hover{border-color:var(--red)}
+.kpi-card.purple:hover{border-color:var(--purple)}
+.kpi-card.teal:hover{border-color:var(--teal)}
+.kpi-card.active-filter{box-shadow:0 0 0 2px var(--blue);border-color:var(--blue)}
+.kpi-hint{position:absolute;bottom:8px;right:10px;font-size:9px;color:var(--text3);opacity:0;transition:opacity .15s;text-transform:uppercase;letter-spacing:.4px}
+.kpi-card:hover .kpi-hint{opacity:1}
+/* KPI MODAL */
+.kpi-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;backdrop-filter:blur(2px)}
+.kpi-modal-overlay.open{display:flex}
+.kpi-modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:960px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.kpi-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.kpi-modal-title{font-size:14px;font-weight:600;color:var(--text)}
+.kpi-modal-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.kpi-modal-close{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text2);font-size:16px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.kpi-modal-close:hover{background:var(--bg4);color:var(--text)}
+.kpi-modal-body{overflow-y:auto;flex:1}
+.kpi-modal-tbl-head{display:grid;padding:8px 16px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);position:sticky;top:0;z-index:2}
+.kpi-modal-tbl-head.mg{grid-template-columns:90px 1fr 140px 100px 100px 100px 24px}
+.kpi-modal-row{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.kpi-modal-row:last-child{border-bottom:none}
+.kpi-modal-row:hover .kpi-modal-main{background:var(--bg3)}
+.kpi-modal-main{display:grid;padding:9px 16px;align-items:center}
+.kpi-modal-main.mg{grid-template-columns:90px 1fr 140px 100px 100px 100px 24px}
+.kpi-modal-expand{display:none;padding:12px 16px 14px;border-top:1px solid var(--border);background:var(--bg)}
+.kpi-modal-expand.open{display:block}
+.kpi-modal-footer{padding:10px 16px;border-top:1px solid var(--border);background:var(--bg3);font-size:11px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .kpi-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px}
 .kpi-card.blue::before{background:var(--blue)}
 .kpi-card.green::before{background:var(--green)}
@@ -422,6 +452,30 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
     </div>
   </div>
 
+  <!-- KPI MODAL -->
+  <div class="kpi-modal-overlay" id="kpiModal" onclick="closeKpiModal(event)">
+    <div class="kpi-modal">
+      <div class="kpi-modal-header">
+        <div>
+          <div class="kpi-modal-title" id="kpiModalTitle">Call Outs</div>
+          <div class="kpi-modal-meta" id="kpiModalMeta"></div>
+        </div>
+        <button class="kpi-modal-close" onclick="closeKpiModal(null)">✕</button>
+      </div>
+      <div class="kpi-modal-body">
+        <div class="kpi-modal-tbl-head mg">
+          <span>Date / Time</span><span>Partner(s)</span><span>Type</span>
+          <span>Made by</span><span>Response</span><span>Escalated</span><span></span>
+        </div>
+        <div id="kpiModalBody"></div>
+      </div>
+      <div class="kpi-modal-footer">
+        <span id="kpiModalFooter"></span>
+        <span style="color:var(--text3)">Click any row to expand notes</span>
+      </div>
+    </div>
+  </div>
+
   <!-- DEFCON TAB -->
   <div class="main" id="pane-defcons" style="display:none">
     <div class="filter-bar">
@@ -681,22 +735,26 @@ function renderCoKPIs() {
   // no response
   const noResp = total - resp;
 
+  const topTypeFull = topType[0];
+  const topTypeShort = topType[0] === 'Queue Callouts' ? 'Queue' : topType[0] === 'NLH Escalation' ? 'NLH Esc.' : topType[0] === 'Contact Drivers' ? 'Cont. Drivers' : 'Mitigation';
+
   const kpis = [
-    {color:'blue', label:'Total call outs', val: total.toLocaleString(), sub: `across ${[...new Set(coFiltered.map(r=>r.d))].length} days`},
-    {color:'red', label:'Escalations', val: esc.toLocaleString(), sub: `<b>${escRate}%</b> escalation rate`},
-    {color:'green', label:'Partner response rate', val: respRate + '%', sub: `<b>${resp}</b> of ${total} responded`},
-    {color:'amber', label:'No response', val: noResp.toLocaleString(), sub: `<b>${Math.round(noResp/total*100)||0}%</b> no-response rate`},
-    {color:'purple', label:'Most call outs by', val: topAgent[0], sub: `<b>${topAgent[1]}</b> call outs logged`},
-    {color:'teal', label:'Most involved partner', val: topPartner[0], sub: `<b>${topPartner[1]}</b> appearances`},
-    {color:'blue', label:'Top call out type', val: topType[0] === 'Queue Callouts' ? 'Queue' : topType[0] === 'NLH Escalation' ? 'NLH Esc.' : topType[0] === 'Contact Drivers' ? 'Cont. Drivers' : 'Mitigation', sub: `<b>${topType[1]}</b> occurrences`},
-    {color:'green', label:'With notes', val: noted.toLocaleString(), sub: `<b>${Math.round(noted/total*100)||0}%</b> documented`},
+    {color:'blue',  label:'Total call outs',       val: total.toLocaleString(),  sub: `across ${[...new Set(coFiltered.map(r=>r.d))].length} days`,         kpi:'all'},
+    {color:'red',   label:'Escalations',            val: esc.toLocaleString(),    sub: `<b>${escRate}%</b> escalation rate`,                                   kpi:'escalated'},
+    {color:'green', label:'Partner response rate',  val: respRate + '%',          sub: `<b>${resp}</b> of ${total} responded`,                                  kpi:'responded'},
+    {color:'amber', label:'No response',            val: noResp.toLocaleString(), sub: `<b>${Math.round(noResp/total*100)||0}%</b> no-response rate`,           kpi:'noresponse'},
+    {color:'purple',label:'Most call outs by',      val: topAgent[0],             sub: `<b>${topAgent[1]}</b> call outs logged`,                                kpi:'agent:'+topAgent[0]},
+    {color:'teal',  label:'Most involved partner',  val: topPartner[0],           sub: `<b>${topPartner[1]}</b> appearances`,                                   kpi:'partner:'+topPartner[0]},
+    {color:'blue',  label:'Top call out type',      val: topTypeShort,            sub: `<b>${topType[1]}</b> occurrences`,                                      kpi:'type:'+topTypeFull},
+    {color:'green', label:'With notes',             val: noted.toLocaleString(),  sub: `<b>${Math.round(noted/total*100)||0}%</b> documented`,                  kpi:'noted'},
   ];
 
   document.getElementById('co-kpis').innerHTML = kpis.map(k => `
-    <div class="kpi-card ${k.color}">
+    <div class="kpi-card ${k.color}" onclick="openKpiModal('${k.kpi.replace(/'/g,"\\'")}')" title="Click to view these call outs">
       <div class="kpi-label">${k.label}</div>
       <div class="kpi-val">${k.val}</div>
       <div class="kpi-sub">${k.sub}</div>
+      <span class="kpi-hint">View records ↗</span>
     </div>`).join('');
 }
 
@@ -1057,6 +1115,127 @@ function renderDefconAll(){
   renderDcCharts();
   renderDcTable();
 }
+
+// ── KPI MODAL ──
+let kpiModalExpandedRow = null;
+
+function openKpiModal(kpi) {
+  let rows = [];
+  let title = '';
+  let meta = '';
+
+  if (kpi === 'all') {
+    rows = coFiltered;
+    title = 'All Call Outs';
+    meta = rows.length + ' records in current filter';
+  } else if (kpi === 'escalated') {
+    rows = coFiltered.filter(r => r.esc);
+    title = 'Escalated Call Outs';
+    meta = rows.length + ' escalated records';
+  } else if (kpi === 'responded') {
+    rows = coFiltered.filter(r => r.resp);
+    title = 'Call Outs With Partner Response';
+    meta = rows.length + ' responded records';
+  } else if (kpi === 'noresponse') {
+    rows = coFiltered.filter(r => !r.resp);
+    title = 'Call Outs With No Response';
+    meta = rows.length + ' no-response records';
+  } else if (kpi === 'noted') {
+    rows = coFiltered.filter(r => r.n && r.n.trim());
+    title = 'Call Outs With Notes';
+    meta = rows.length + ' documented records';
+  } else if (kpi.startsWith('agent:')) {
+    const agent = kpi.slice(6);
+    rows = coFiltered.filter(r => r.mb === agent);
+    title = 'Call Outs by ' + agent;
+    meta = rows.length + ' records made by ' + agent;
+  } else if (kpi.startsWith('partner:')) {
+    const partner = kpi.slice(8);
+    rows = coFiltered.filter(r => r.p.split(',').map(s=>s.trim()).includes(partner));
+    title = partner + ' — Call Out Involvement';
+    meta = rows.length + ' records involving ' + partner;
+  } else if (kpi.startsWith('type:')) {
+    const type = kpi.slice(5);
+    rows = coFiltered.filter(r => r.t === type);
+    title = type;
+    meta = rows.length + ' records of this type';
+  }
+
+  document.getElementById('kpiModalTitle').textContent = title;
+  document.getElementById('kpiModalMeta').textContent = meta;
+  document.getElementById('kpiModalFooter').textContent = rows.length + ' total records · click any row to expand notes';
+  kpiModalExpandedRow = null;
+
+  document.getElementById('kpiModalBody').innerHTML = rows.length === 0
+    ? '<div class="empty">No records match this filter.</div>'
+    : rows.map((r, i) => {
+        const hasNote = r.n && r.n.trim();
+        const partners = (r.p||'').split(',').map(s=>s.trim()).filter(Boolean);
+        const escToList = r.esc && r.escTo ? r.escTo.split(',').map(s=>s.trim()).filter(Boolean) : [];
+        const partnerChips = partners.map(p => {
+          if (escToList.includes(p)) return `<span class="partner-chip escalated">⚠ ${p}</span>`;
+          return `<span class="partner-chip neutral">${p}</span>`;
+        }).join('');
+
+        const expandContent = `
+          <div class="expand-meta" style="margin-bottom:10px;display:flex;gap:18px;flex-wrap:wrap">
+            <div class="expand-meta-item"><span class="expand-meta-key">Date</span><span class="expand-meta-val">${r.d} ${r.tm}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Type</span><span class="expand-meta-val">${r.t}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Made by</span><span class="expand-meta-val">${r.mb||'—'}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Escalated</span><span class="expand-meta-val" style="color:${r.esc?'var(--red)':'var(--text2)'}">${r.esc?'⚠ Yes — '+r.escTo:'No'}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Response</span><span class="expand-meta-val" style="color:${r.resp?'var(--green)':'var(--red)'}">${r.resp?'Responded':'No response'}</span></div>
+          </div>
+          ${partners.length ? `<div style="margin-bottom:10px"><div class="expand-label" style="margin-bottom:6px">Partners</div><div class="partner-resp-grid">${partnerChips}</div></div>` : ''}
+          <div class="expand-label" style="margin-bottom:6px">Notes</div>
+          ${hasNote ? `<div class="note-block">${r.n}</div>` : '<div class="note-empty">No notes recorded.</div>'}`;
+
+        return `<div class="kpi-modal-row">
+          <div class="kpi-modal-main mg" onclick="toggleKpiModalRow(${i})">
+            <div><div class="cell-date">${r.d.slice(5)}</div><div class="cell-time">${r.tm}</div></div>
+            <div class="cell-partner">${r.p||'—'}</div>
+            <div>${typeBadge(r.t)}</div>
+            <div class="cell-mb">${r.mb||'—'}</div>
+            <div><span class="badge ${r.resp?'badge-yes':'badge-no'}">${r.resp?'Responded':'No resp.'}</span></div>
+            <div>${r.esc?`<span class="badge badge-esc">Escalated</span>`:'<span style="color:var(--text3);font-size:11px">—</span>'}</div>
+            <div><span class="chev" id="kchev-${i}">▾</span></div>
+          </div>
+          <div class="kpi-modal-expand" id="kexp-${i}">${expandContent}</div>
+        </div>`;
+      }).join('');
+
+  document.getElementById('kpiModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function toggleKpiModalRow(i) {
+  const exp = document.getElementById('kexp-' + i);
+  const chev = document.getElementById('kchev-' + i);
+  if (!exp) return;
+  if (exp.classList.contains('open')) {
+    exp.classList.remove('open'); chev.classList.remove('open');
+    kpiModalExpandedRow = null;
+  } else {
+    if (kpiModalExpandedRow !== null) {
+      const prev = document.getElementById('kexp-' + kpiModalExpandedRow);
+      const prevC = document.getElementById('kchev-' + kpiModalExpandedRow);
+      if (prev) prev.classList.remove('open');
+      if (prevC) prevC.classList.remove('open');
+    }
+    exp.classList.add('open'); chev.classList.add('open');
+    kpiModalExpandedRow = i;
+  }
+}
+
+function closeKpiModal(e) {
+  if (e && e.target !== document.getElementById('kpiModal')) return;
+  document.getElementById('kpiModal').classList.remove('open');
+  document.body.style.overflow = '';
+  kpiModalExpandedRow = null;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeKpiModal(null);
+});
 
 // --- THEME ---
 function setTheme(theme) {
