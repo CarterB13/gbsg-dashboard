@@ -78,6 +78,27 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .filter-bar select,.filter-bar input[type=date]{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:12px;padding:6px 10px;min-width:130px;cursor:pointer;outline:none}
 .filter-bar select:hover,.filter-bar input:hover{border-color:var(--blue)}
 .filter-bar select:focus,.filter-bar input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(74,158,255,.15)}
+/* MULTI-SELECT DROPDOWN */
+.ms-wrap{position:relative;min-width:130px}
+.ms-trigger{display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:5px 8px;cursor:pointer;user-select:none;min-height:32px;transition:border-color .15s}
+.ms-trigger:hover{border-color:var(--blue)}
+.ms-trigger.open{border-color:var(--blue);box-shadow:0 0 0 2px rgba(74,158,255,.15)}
+.ms-display{display:flex;flex-wrap:wrap;gap:3px;flex:1;min-width:0}
+.ms-placeholder{font-size:12px;color:var(--text3)}
+.ms-tag{display:inline-flex;align-items:center;gap:3px;background:var(--blue-dim);color:var(--blue);font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;white-space:nowrap}
+.ms-tag-x{cursor:pointer;opacity:.7;font-size:11px;line-height:1}
+.ms-tag-x:hover{opacity:1}
+.ms-arrow{font-size:10px;color:var(--text3);flex-shrink:0;transition:transform .15s}
+.ms-trigger.open .ms-arrow{transform:rotate(180deg)}
+.ms-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:5px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.18);display:none;min-width:160px}
+.ms-dropdown.open{display:block}
+.ms-option{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--radius);font-size:12px;color:var(--text2);cursor:pointer;transition:background .1s}
+.ms-option:hover{background:var(--bg3);color:var(--text)}
+.ms-option.selected{color:var(--blue)}
+.ms-check{width:14px;height:14px;border:1px solid var(--border2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:all .1s}
+.ms-option.selected .ms-check{background:var(--blue);border-color:var(--blue);color:#fff}
+.ms-clear{font-size:10px;color:var(--text3);text-align:right;padding:4px 6px 1px;cursor:pointer;border-top:1px solid var(--border);margin-top:3px}
+.ms-clear:hover{color:var(--blue)}
 .filter-actions{display:flex;gap:8px;align-items:flex-end;margin-left:auto}
 .btn{padding:6px 14px;border-radius:var(--radius);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all .15s}
 .btn:hover{background:var(--bg4);color:var(--text);border-color:var(--border2)}
@@ -307,39 +328,23 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
     <div class="filter-bar" id="co-filters">
       <div class="filter-group">
         <span class="filter-label">Partner</span>
-        <select id="f-partner" onchange="applyCoFilters()">
-          <option value="">All partners</option>
-          <option>Foundever</option><option>CNX</option><option>Alorica</option>
-          <option>Teleperformance</option><option>WSOL</option>
-        </select>
+        <div class="ms-wrap" id="ms-partner"></div>
       </div>
       <div class="filter-group">
         <span class="filter-label">Call out type</span>
-        <select id="f-type" onchange="applyCoFilters()">
-          <option value="">All types</option>
-          <option>Queue Callouts</option><option>NLH Escalation</option>
-          <option>Contact Drivers</option><option>Mitigation Plans</option>
-        </select>
+        <div class="ms-wrap" id="ms-type"></div>
       </div>
       <div class="filter-group">
         <span class="filter-label">Made by</span>
-        <select id="f-madeby" onchange="applyCoFilters()"></select>
+        <div class="ms-wrap" id="ms-madeby"></div>
       </div>
       <div class="filter-group">
         <span class="filter-label">Escalated to</span>
-        <select id="f-escto" onchange="applyCoFilters()">
-          <option value="">All</option>
-          <option>Foundever</option><option>CNX</option><option>Alorica</option>
-          <option>Teleperformance</option><option>WSOL</option>
-        </select>
+        <div class="ms-wrap" id="ms-escto"></div>
       </div>
       <div class="filter-group">
         <span class="filter-label">Escalated</span>
-        <select id="f-esc" onchange="applyCoFilters()">
-          <option value="">All</option>
-          <option value="yes">Escalated</option>
-          <option value="no">Not escalated</option>
-        </select>
+        <div class="ms-wrap" id="ms-esc"></div>
       </div>
       <div class="filter-group">
         <span class="filter-label">From</span>
@@ -422,18 +427,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
     <div class="filter-bar">
       <div class="filter-group">
         <span class="filter-label">Driver</span>
-        <select id="dc-f-driver" onchange="applyDcFilters()">
-          <option value="">All drivers</option>
-          <option>Demand ITT</option><option>Supply ITT</option>
-          <option>Demand</option><option>Overstaff with Low Demand</option>
-        </select>
+        <div class="ms-wrap" id="ms-dc-driver"></div>
       </div>
       <div class="filter-group">
         <span class="filter-label">Submitted by</span>
-        <select id="dc-f-by" onchange="applyDcFilters()">
-          <option value="">All</option>
-          <option>Carter Bishara</option><option>Akash</option><option>Oliver Franko</option>
-        </select>
+        <div class="ms-wrap" id="ms-dc-by"></div>
       </div>
       <div class="filter-group">
         <span class="filter-label">From</span>
@@ -526,29 +524,118 @@ function switchTab(tab) {
   if(tab === 'defcons') renderDefconAll();
 }
 
-// --- MADE BY SELECT ---
+// ── MULTI-SELECT ENGINE ──
+const MS_STATE = {}; // id -> Set of selected values
+
+function msInit(containerId, options, placeholder, onChange) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  MS_STATE[containerId] = new Set();
+  wrap.innerHTML = `
+    <div class="ms-trigger" id="${containerId}-trigger" onclick="msToggle('${containerId}')">
+      <div class="ms-display" id="${containerId}-display"><span class="ms-placeholder">${placeholder}</span></div>
+      <span class="ms-arrow">▾</span>
+    </div>
+    <div class="ms-dropdown" id="${containerId}-dropdown">
+      ${options.map(o => `<div class="ms-option" id="${containerId}-opt-${CSS.escape(o.value||o)}" onclick="msSelect('${containerId}','${(o.value||o).replace(/'/g,"\\'")}','${(o.label||o.value||o).replace(/'/g,"\\'")}')">
+        <span class="ms-check"></span><span>${o.label||o.value||o}</span>
+      </div>`).join('')}
+      <div class="ms-clear" onclick="msClear('${containerId}')">Clear all</div>
+    </div>`;
+  wrap._onChange = onChange;
+  wrap._placeholder = placeholder;
+}
+
+function msToggle(id) {
+  const trigger = document.getElementById(id+'-trigger');
+  const dd = document.getElementById(id+'-dropdown');
+  const isOpen = dd.classList.contains('open');
+  // Close all others
+  document.querySelectorAll('.ms-dropdown.open').forEach(el => {
+    el.classList.remove('open');
+    el.previousElementSibling && el.previousElementSibling.classList.remove('open');
+  });
+  if (!isOpen) { dd.classList.add('open'); trigger.classList.add('open'); }
+}
+
+function msSelect(id, value, label) {
+  const state = MS_STATE[id];
+  const optEl = document.getElementById(id+'-opt-'+CSS.escape(value));
+  if (state.has(value)) {
+    state.delete(value);
+    optEl && optEl.classList.remove('selected');
+  } else {
+    state.add(value);
+    optEl && optEl.classList.add('selected');
+  }
+  msRenderTags(id, label);
+  const wrap = document.getElementById(id);
+  if (wrap && wrap._onChange) wrap._onChange();
+}
+
+function msRenderTags(id) {
+  const state = MS_STATE[id];
+  const display = document.getElementById(id+'-display');
+  const wrap = document.getElementById(id);
+  if (!display) return;
+  if (state.size === 0) {
+    display.innerHTML = `<span class="ms-placeholder">${wrap._placeholder}</span>`;
+  } else {
+    display.innerHTML = [...state].map(v =>
+      `<span class="ms-tag">${v}<span class="ms-tag-x" onclick="event.stopPropagation();msSelect('${id}','${v.replace(/'/g,"\\'")}','')">×</span></span>`
+    ).join('');
+  }
+}
+
+function msClear(id) {
+  MS_STATE[id] = new Set();
+  document.querySelectorAll(`#${id}-dropdown .ms-option`).forEach(el => el.classList.remove('selected'));
+  msRenderTags(id);
+  const wrap = document.getElementById(id);
+  if (wrap && wrap._onChange) wrap._onChange();
+}
+
+function msGetValues(id) { return MS_STATE[id] ? [...MS_STATE[id]] : []; }
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ms-wrap')) {
+    document.querySelectorAll('.ms-dropdown.open').forEach(el => el.classList.remove('open'));
+    document.querySelectorAll('.ms-trigger.open').forEach(el => el.classList.remove('open'));
+  }
+});
+
+// --- INIT FILTERS ---
 function populateMadeBy() {
   const names = [...new Set(CALLOUTS.map(r => r.mb).filter(Boolean))].sort();
-  const sel = document.getElementById('f-madeby');
-  sel.innerHTML = '<option value="">All agents</option>' + names.map(n => `<option>${n}</option>`).join('');
+  msInit('ms-madeby', names, 'All agents', applyCoFilters);
+  msInit('ms-partner', ['Foundever','CNX','Alorica','Teleperformance','WSOL'], 'All partners', applyCoFilters);
+  msInit('ms-type', ['Queue Callouts','NLH Escalation','Contact Drivers','Mitigation Plans'], 'All types', applyCoFilters);
+  msInit('ms-escto', ['Foundever','CNX','Alorica','Teleperformance','WSOL'], 'All partners', applyCoFilters);
+  msInit('ms-esc', [{value:'yes',label:'Escalated'},{value:'no',label:'Not escalated'}], 'All', applyCoFilters);
+  // Defcon filters
+  msInit('ms-dc-driver', ['Demand ITT','Supply ITT','Demand','Overstaff with Low Demand'], 'All drivers', applyDcFilters);
+  msInit('ms-dc-by', ['Carter Bishara','Akash','Oliver Franko'], 'All', applyDcFilters);
 }
 
 // --- CO FILTERS ---
 function applyCoFilters() {
-  const pf = document.getElementById('f-partner').value;
-  const tf = document.getElementById('f-type').value;
-  const mbf = document.getElementById('f-madeby').value;
-  const etf = document.getElementById('f-escto').value;
-  const ef = document.getElementById('f-esc').value;
+  const pf = msGetValues('ms-partner');
+  const tf = msGetValues('ms-type');
+  const mbf = msGetValues('ms-madeby');
+  const etf = msGetValues('ms-escto');
+  const ef = msGetValues('ms-esc');
   const fd = document.getElementById('f-from').value;
   const td = document.getElementById('f-to').value;
   coFiltered = CALLOUTS.filter(r => {
-    if (pf && !r.p.split(',').map(s=>s.trim()).includes(pf)) return false;
-    if (tf && r.t !== tf) return false;
-    if (mbf && r.mb !== mbf) return false;
-    if (etf && !r.escTo.split(',').map(s=>s.trim()).includes(etf)) return false;
-    if (ef === 'yes' && !r.esc) return false;
-    if (ef === 'no' && r.esc) return false;
+    if (pf.length && !pf.some(p => r.p.split(',').map(s=>s.trim()).includes(p))) return false;
+    if (tf.length && !tf.includes(r.t)) return false;
+    if (mbf.length && !mbf.includes(r.mb)) return false;
+    if (etf.length && !etf.some(p => r.escTo.split(',').map(s=>s.trim()).includes(p))) return false;
+    if (ef.length) {
+      if (ef.includes('yes') && !ef.includes('no') && !r.esc) return false;
+      if (ef.includes('no') && !ef.includes('yes') && r.esc) return false;
+    }
     if (fd && r.d < fd) return false;
     if (td && r.d > td) return false;
     return true;
@@ -561,7 +648,7 @@ function applyCoFilters() {
 }
 
 function resetCoFilters() {
-  ['f-partner','f-type','f-madeby','f-escto','f-esc'].forEach(id => document.getElementById(id).value = '');
+  ['ms-partner','ms-type','ms-madeby','ms-escto','ms-esc'].forEach(id => msClear(id));
   document.getElementById('f-from').value = '2026-05-18';
   document.getElementById('f-to').value = '2026-06-18';
   applyCoFilters();
@@ -822,13 +909,13 @@ function renderCoAll() {
 
 // --- DEFCON FILTERS ---
 function applyDcFilters() {
-  const df = document.getElementById('dc-f-driver').value;
-  const bf = document.getElementById('dc-f-by').value;
+  const df = msGetValues('ms-dc-driver');
+  const bf = msGetValues('ms-dc-by');
   const fd = document.getElementById('dc-f-from').value;
   const td = document.getElementById('dc-f-to').value;
   dcFiltered = DEFCONS.filter(r => {
-    if (df && r.driver !== df) return false;
-    if (bf && r.by !== bf) return false;
+    if (df.length && !df.includes(r.driver)) return false;
+    if (bf.length && !bf.includes(r.by)) return false;
     if (dcLevelFilter !== 'all' && r.level !== dcLevelFilter) return false;
     if (fd && r.sd && r.sd < fd) return false;
     if (td && r.sd && r.sd > td) return false;
@@ -840,8 +927,8 @@ function applyDcFilters() {
 }
 
 function resetDcFilters() {
-  document.getElementById('dc-f-driver').value = '';
-  document.getElementById('dc-f-by').value = '';
+  msClear('ms-dc-driver');
+  msClear('ms-dc-by');
   document.getElementById('dc-f-from').value = '2026-02-06';
   document.getElementById('dc-f-to').value = '2026-06-18';
   dcLevelFilter = 'all';
