@@ -1269,8 +1269,63 @@ function renderCoKPIs() {
 }
 
 // --- CO CHARTS ---
-const TYPE_COLORS = {'Queue Callouts':'#4a9eff','NLH Escalation':'#f87171','Contact Drivers':'#f59e0b','Mitigation Plans':'#a78bfa'};
-const PARTNER_COLORS = ['#4a9eff','#34d399','#f59e0b','#f87171','#a78bfa'];
+// ── THEME-AWARE PALETTE ENGINE ──
+function getThemePalette() {
+  const t = document.documentElement.getAttribute('data-theme') || 'dark';
+  const P = {
+    dark: {
+      // warm charcoal: amber, sage, rose, copper, slate
+      c1:'#e8a060', c2:'#7ec88a', c3:'#e07070', c4:'#c090e0', c5:'#60c8b0',
+      c6:'#e8c060', c7:'#8899bb', c8:'#d09060',
+      line:'#e8a060', lineBg:'rgba(232,160,96,.08)',
+      d1:'#7ec88a', d2:'#60c8b0', d3:'#e8c060', d4:'#e07070', r1:'#c090e0',
+      prep30:'#7ec88a', prep90:'#c090e0',
+    },
+    light: {
+      // clean light: blue, teal, amber, rose, violet
+      c1:'#2563eb', c2:'#0d9488', c3:'#d97706', c4:'#7c3aed', c5:'#059669',
+      c6:'#dc2626', c7:'#0891b2', c8:'#b45309',
+      line:'#2563eb', lineBg:'rgba(37,99,235,.07)',
+      d1:'#2563eb', d2:'#0d9488', d3:'#d97706', d4:'#dc2626', r1:'#7c3aed',
+      prep30:'#0d9488', prep90:'#7c3aed',
+    },
+    executive: {
+      // executive: muted slate, olive, burgundy, steel, gold
+      c1:'#3b6fa0', c2:'#4a7a5a', c3:'#8c6020', c4:'#6a4a8c', c5:'#2e7880',
+      c6:'#8c3a3a', c7:'#5a6880', c8:'#7a6a30',
+      line:'#3b6fa0', lineBg:'rgba(59,111,160,.07)',
+      d1:'#3b6fa0', d2:'#4a7a5a', d3:'#8c6020', d4:'#8c3a3a', r1:'#6a4a8c',
+      prep30:'#4a7a5a', prep90:'#6a4a8c',
+    },
+    neural: {
+      // metal navy: steel blue, teal, gold, muted red, violet
+      c1:'#5b9bd5', c2:'#4ec9a0', c3:'#d4a855', c4:'#9b7fd4', c5:'#4ec9a0',
+      c6:'#e06060', c7:'#7a95b0', c8:'#8898B0',
+      line:'#5b9bd5', lineBg:'rgba(91,155,213,.08)',
+      d1:'#5b9bd5', d2:'#4ec9a0', d3:'#d4a855', d4:'#e06060', r1:'#9b7fd4',
+      prep30:'#4ec9a0', prep90:'#9b7fd4',
+    },
+    intuit: {
+      // intuit steel: slate blue, sage, bronze, dusty rose, steel teal
+      c1:'#3a5878', c2:'#356850', c3:'#6a5030', c4:'#4a4870', c5:'#286878',
+      c6:'#7a3838', c7:'#5a7090', c8:'#8898B0',
+      line:'#3a5878', lineBg:'rgba(58,88,120,.08)',
+      d1:'#3a5878', d2:'#356850', d3:'#6a5030', d4:'#7a3838', r1:'#4a4870',
+      prep30:'#356850', prep90:'#4a4870',
+    },
+  };
+  return P[t] || P.dark;
+}
+
+function typeColors() {
+  const p = getThemePalette();
+  return {'Queue Callouts':p.c1,'NLH Escalation':p.c3,'Contact Drivers':p.c2,'Mitigation Plans':p.c4};
+}
+function partnerColors() {
+  const p = getThemePalette();
+  return [p.c1, p.c2, p.c3, p.c4, p.c5];
+}
+const PARTNER_COLORS_STATIC = ['#4a9eff','#34d399','#f59e0b','#f87171','#a78bfa'];
 const PARTNERS = ['Foundever','CNX','Alorica','Teleperformance','WSOL'];
 
 function renderCoCharts() {
@@ -1278,7 +1333,10 @@ function renderCoCharts() {
   coFiltered.forEach(r => { if(tCount[r.t]!==undefined) tCount[r.t]++; });
   const tLabels = Object.keys(tCount).filter(k=>tCount[k]>0);
   const tData = tLabels.map(k=>tCount[k]);
-  const tColors = tLabels.map(k=>TYPE_COLORS[k]);
+  const pal = getThemePalette();
+  const TC = typeColors();
+  const PC = partnerColors();
+  const tColors = tLabels.map(k=>TC[k]);
 
   // type donut
   if(typeChartInst) typeChartInst.destroy();
@@ -1297,19 +1355,17 @@ function renderCoCharts() {
   document.getElementById('partner-legend').innerHTML = `<div class="bar-mini-wrap">` +
     PARTNERS.map((p,i)=>`<div class="bar-mini-row">
       <span class="bar-mini-label" title="${p}">${p}</span>
-      <div class="bar-mini-track"><div class="bar-mini-fill" style="width:${Math.round(pCount[p]/maxP*100)}%;background:${PARTNER_COLORS[i]}"></div></div>
+      <div class="bar-mini-track"><div class="bar-mini-fill" style="width:${Math.round(pCount[p]/maxP*100)}%;background:${PC[i]}"></div></div>
       <span class="bar-mini-count">${pCount[p]}</span>
     </div>`).join('') + `</div>`;
 
   // escalation by partner bar
   const escByPartner = {};
-  PARTNERS.forEach(p => {
-    escByPartner[p] = coFiltered.filter(r=>r.p.includes(p)&&r.esc).length;
-  });
+  PARTNERS.forEach(p => { escByPartner[p] = coFiltered.filter(r=>r.p.includes(p)&&r.esc).length; });
   if(escChartInst) escChartInst.destroy();
   escChartInst = new Chart(document.getElementById('escChart'), {
     type:'bar',
-    data:{labels:PARTNERS, datasets:[{data:PARTNERS.map(p=>escByPartner[p]),backgroundColor:PARTNER_COLORS,borderRadius:4,borderWidth:0}]},
+    data:{labels:PARTNERS, datasets:[{data:PARTNERS.map(p=>escByPartner[p]),backgroundColor:PC,borderRadius:4,borderWidth:0}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:chartTick(),font:{size:10}}},y:{grid:{color:chartGrid()},ticks:{color:chartTick(),font:{size:10}}}}}
   });
 
@@ -1322,9 +1378,10 @@ function renderCoCharts() {
   if(trendChartInst) trendChartInst.destroy();
   trendChartInst = new Chart(document.getElementById('trendChart'), {
     type:'line',
-    data:{labels:dates.map(d=>d.slice(5)), datasets:[{data:vols,borderColor:'#4a9eff',backgroundColor:'rgba(74,158,255,.07)',fill:true,tension:.35,pointRadius:2,pointHoverRadius:4,borderWidth:1.5}]},
+    data:{labels:dates.map(d=>d.slice(5)), datasets:[{data:vols,borderColor:pal.line,backgroundColor:pal.lineBg,fill:true,tension:.35,pointRadius:2,pointHoverRadius:4,borderWidth:1.5}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:chartGrid()},ticks:{color:chartTick(),font:{size:10},maxTicksLimit:16,maxRotation:45}},y:{grid:{color:chartGrid()},ticks:{color:chartTick(),font:{size:10}}}}}
   });
+
 }
 
 // --- CO INSIGHTS ---
@@ -1565,7 +1622,8 @@ function renderDcKPIs() {
 function renderDcCharts() {
   const levels = {D1:0,D2:0,D3:0,D4:0,R1:0};
   dcFiltered.forEach(r => { if(levels[r.level]!==undefined) levels[r.level]++; });
-  const lColors = {'D1':'#4a9eff','D2':'#34d399','D3':'#f59e0b','D4':'#f87171','R1':'#22d3ee'};
+  const pal = getThemePalette();
+  const lColors = {'D1':pal.d1,'D2':pal.d2,'D3':pal.d3,'D4':pal.d4,'R1':pal.r1};
 
   if(dcLevelChartInst) dcLevelChartInst.destroy();
   dcLevelChartInst = new Chart(document.getElementById('dcLevelChart'), {
@@ -1947,39 +2005,18 @@ function setTheme(theme) {
   const tickColor = isNeural ? '#2d7fa8' : isDark ? '#5a6580' : isExec ? '#9b9389' : '#9ca3af';
   const gridColor = isNeural ? 'rgba(0,245,255,.06)' : isDark ? 'rgba(255,255,255,.04)' : isExec ? 'rgba(0,0,0,.05)' : 'rgba(0,0,0,.06)';
   Chart.defaults.color = tickColor;
-  [typeChartInst, escChartInst, trendChartInst, dcLevelChartInst].forEach(c => {
+  // Re-render all charts from scratch to pick up new theme palette
+  if (typeof renderCoCharts === 'function' && activeTab === 'callouts') renderCoCharts();
+  if (typeof renderDcCharts === 'function' && activeTab === 'defcons') renderDcCharts();
+  if (typeof renderPrepCharts === 'function' && activeTab === 'prep') renderPrepCharts();
+  // Update scales on any surviving chart instances
+  [typeChartInst, escChartInst, trendChartInst, dcLevelChartInst, prepTypeChartInst, prepTrendChartInst].forEach(c => {
     if (!c) return;
-    if (c.config.type === 'line' || c.config.type === 'bar') {
-      if (c.options.scales) {
-        ['x','y'].forEach(ax => {
-          if (c.options.scales[ax]) {
-            if (c.options.scales[ax].ticks) c.options.scales[ax].ticks.color = tickColor;
-            if (c.options.scales[ax].grid) c.options.scales[ax].grid.color = gridColor;
-          }
-        });
-      }
-    }
-    if (isNeural && c.data && c.data.datasets) {
-      c.data.datasets.forEach(ds => {
-        if (c.config.type === 'line') {
-          ds.borderColor = '#5b9bd5';
-          ds.backgroundColor = 'rgba(91,155,213,.07)';
-        }
-      });
-    }
-    if (theme === 'dark' && c.data && c.data.datasets) {
-      c.data.datasets.forEach(ds => {
-        if (c.config.type === 'line') {
-          ds.borderColor = '#f0a050';
-          ds.backgroundColor = 'rgba(240,160,80,.07)';
-        }
-      });
-    }
-    if ((theme === 'light' || theme === 'executive' || theme === 'intuit') && c.data && c.data.datasets) {
-      c.data.datasets.forEach(ds => {
-        if (c.config.type === 'line') {
-          ds.borderColor = theme === 'intuit' ? '#3A5878' : theme === 'executive' ? '#3b6fa0' : '#1d6fd1';
-          ds.backgroundColor = theme === 'intuit' ? 'rgba(58,88,120,.08)' : 'rgba(59,111,160,.07)';
+    if (c.options.scales) {
+      ['x','y'].forEach(ax => {
+        if (c.options.scales[ax]) {
+          if (c.options.scales[ax].ticks) c.options.scales[ax].ticks.color = tickColor;
+          if (c.options.scales[ax].grid) c.options.scales[ax].grid.color = gridColor;
         }
       });
     }
@@ -2105,14 +2142,15 @@ function renderPrepKPIs() {
 }
 
 function renderPrepCharts() {
+  const pal = getThemePalette();
   const s30 = prepFiltered.filter(r=>r.prep==='30 Seconds').length;
   const s90 = prepFiltered.filter(r=>r.prep==='90 Seconds').length;
 
   if(prepTypeChartInst) prepTypeChartInst.destroy();
   prepTypeChartInst = new Chart(document.getElementById('prepTypeChart'), {
     type:'doughnut',
-    data:{labels:['30 Seconds','90 Seconds'],datasets:[{data:[s30,s90],backgroundColor:['#34d399','#a78bfa'],borderWidth:0}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:chartTick(),font:{size:11},padding:12}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed}`}}},cutout:'60%'}
+    data:{labels:['30 Seconds','90 Seconds'],datasets:[{data:[s30,s90],backgroundColor:[pal.prep30,pal.prep90],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:chartTick(),font:{size:11},padding:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed}`}}},cutout:'60%'}
   });
 
   // Queue bars
@@ -2120,7 +2158,7 @@ function renderPrepCharts() {
   prepFiltered.forEach(r => r.queues.forEach(q => { qCount[q]=(qCount[q]||0)+1; }));
   const sorted = Object.entries(qCount).sort((a,b)=>b[1]-a[1]);
   const maxQ = sorted[0]?.[1]||1;
-  const qColors = ['#4a9eff','#34d399','#f59e0b','#f87171','#a78bfa','#22d3ee'];
+  const qColors = [pal.c1,pal.c2,pal.c3,pal.c4,pal.c5,pal.c6];
   document.getElementById('prep-queue-bars').innerHTML = `<div class="bar-mini-wrap">` +
     sorted.map(([q,c],i) => {
       const short = q.replace('sbseg-ol_','').replace(/_cmb$/,'');
@@ -2141,8 +2179,8 @@ function renderPrepCharts() {
   prepTrendChartInst = new Chart(document.getElementById('prepTrendChart'), {
     type:'bar',
     data:{labels:dates.map(d=>d.slice(5)),datasets:[
-      {label:'30s',data:dates.map(d=>prepFiltered.filter(r=>r.d===d&&r.prep==='30 Seconds').length),backgroundColor:'rgba(52,211,153,.7)',borderRadius:3},
-      {label:'90s',data:dates.map(d=>prepFiltered.filter(r=>r.d===d&&r.prep==='90 Seconds').length),backgroundColor:'rgba(167,139,250,.7)',borderRadius:3}
+      {label:'30s',data:dates.map(d=>prepFiltered.filter(r=>r.d===d&&r.prep==='30 Seconds').length),backgroundColor:pal.prep30+'bb',borderRadius:3},
+      {label:'90s',data:dates.map(d=>prepFiltered.filter(r=>r.d===d&&r.prep==='90 Seconds').length),backgroundColor:pal.prep90+'bb',borderRadius:3}
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:chartTick(),font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{color:chartTick(),font:{size:11}},stacked:true},y:{grid:{color:chartGrid()},ticks:{color:chartTick(),font:{size:11},stepSize:1},stacked:true}}}
   });
