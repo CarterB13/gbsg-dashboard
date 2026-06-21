@@ -1445,24 +1445,27 @@ function renderDcKPIs() {
   const topSG = Object.entries(sgCount).sort((a,b)=>b[1]-a[1])[0]||['—',0];
 
   const kpis = [
-    {color:'blue', label:'Total defcons', val:total.toLocaleString(), sub:`across all staff groups`},
-    {color:'red', label:'D4 (critical)', val:levels.D4, sub:`<b>${total?Math.round(levels.D4/total*100):0}%</b> of all defcons`},
-    {color:'amber', label:'D3 (high)', val:levels.D3, sub:`<b>${total?Math.round(levels.D3/total*100):0}%</b> of all defcons`},
-    {color:'green', label:'D1 / D2', val:(levels.D1+levels.D2), sub:`D1: <b>${levels.D1}</b> · D2: <b>${levels.D2}</b>`},
-    {color:'teal', label:'R1 reversals', val:levels.R1, sub:`overstaffing / low demand`},
-    {color:'purple', label:'Demand ITT', val:demandITT, sub:`<b>${total?Math.round(demandITT/total*100):0}%</b> of drivers`},
-    {color:'amber', label:'Supply ITT', val:supplyITT, sub:`<b>${total?Math.round(supplyITT/total*100):0}%</b> of drivers`},
+    {color:'blue',   emoji:'🖥️',  label:'Total defcons',  val:total.toLocaleString(),       sub:`across all staff groups`},
+    {color:'red',    emoji:'🔴',  label:'D4 (critical)',  val:levels.D4,                    sub:`<b>${total?Math.round(levels.D4/total*100):0}%</b> of all defcons`},
+    {color:'amber',  emoji:'🟠',  label:'D3 (high)',      val:levels.D3,                    sub:`<b>${total?Math.round(levels.D3/total*100):0}%</b> of all defcons`},
+    {color:'green',  emoji:'🟢',  label:'D1 / D2',        val:(levels.D1+levels.D2),        sub:`D1: <b>${levels.D1}</b> · D2: <b>${levels.D2}</b>`},
+    {color:'teal',   emoji:'🔄',  label:'R1 reversals',   val:levels.R1,                    sub:`overstaffing / low demand`},
+    {color:'purple', emoji:'📈',  label:'Demand ITT',     val:demandITT,                    sub:`<b>${total?Math.round(demandITT/total*100):0}%</b> of drivers`},
+    {color:'amber',  emoji:'📦',  label:'Supply ITT',     val:supplyITT,                    sub:`<b>${total?Math.round(supplyITT/total*100):0}%</b> of drivers`},
   ];
 
   const topSGFull = topSG[0];
+  const isIntuitDc = document.documentElement.getAttribute('data-theme') === 'intuit';
   document.getElementById('dc-kpis').innerHTML = kpis.map(k=>`
     <div class="kpi-card ${k.color}">
-      <div class="kpi-label">${k.label}</div>
+      ${isIntuitDc ? `<span class="kpi-emoji">${k.emoji}</span>` : ''}
+      <div class="kpi-label">${isIntuitDc ? k.emoji + ' ' : ''}${k.label}</div>
       <div class="kpi-val" style="font-size:${k.val.toString().length>8?'18px':'28px'}">${k.val}</div>
       <div class="kpi-sub">${k.sub}</div>
     </div>`).join('') + `
     <div class="kpi-card blue" style="position:relative" title="${topSGFull}">
-      <div class="kpi-label">Top staff group</div>
+      ${isIntuitDc ? `<span class="kpi-emoji">🏢</span>` : ''}
+      <div class="kpi-label">${isIntuitDc ? '🏢 ' : ''}Top staff group</div>
       <div class="kpi-val" style="font-size:11px;font-family:monospace;font-weight:600;line-height:1.5;word-break:break-all;white-space:normal;margin-top:4px">${topSGFull}</div>
       <div class="kpi-sub"><b>${topSG[1]}</b> defcons</div>
     </div>`;
@@ -1818,6 +1821,7 @@ function setTheme(theme) {
   }
   // re-render KPI cards so emoji visibility reflects current theme
   if (typeof renderCoKPIs === 'function') renderCoKPIs();
+  if (typeof renderDcKPIs === 'function') renderDcKPIs();
 }
 
 // Load saved theme
