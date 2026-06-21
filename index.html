@@ -1445,29 +1445,31 @@ function renderDcKPIs() {
   const topSG = Object.entries(sgCount).sort((a,b)=>b[1]-a[1])[0]||['—',0];
 
   const kpis = [
-    {color:'blue',   emoji:'🖥️',  label:'Total defcons',  val:total.toLocaleString(),       sub:`across all staff groups`},
-    {color:'red',    emoji:'🔴',  label:'D4 (critical)',  val:levels.D4,                    sub:`<b>${total?Math.round(levels.D4/total*100):0}%</b> of all defcons`},
-    {color:'amber',  emoji:'🟠',  label:'D3 (high)',      val:levels.D3,                    sub:`<b>${total?Math.round(levels.D3/total*100):0}%</b> of all defcons`},
-    {color:'green',  emoji:'🟢',  label:'D1 / D2',        val:(levels.D1+levels.D2),        sub:`D1: <b>${levels.D1}</b> · D2: <b>${levels.D2}</b>`},
-    {color:'teal',   emoji:'🔄',  label:'R1 reversals',   val:levels.R1,                    sub:`overstaffing / low demand`},
-    {color:'purple', emoji:'📈',  label:'Demand ITT',     val:demandITT,                    sub:`<b>${total?Math.round(demandITT/total*100):0}%</b> of drivers`},
-    {color:'amber',  emoji:'📦',  label:'Supply ITT',     val:supplyITT,                    sub:`<b>${total?Math.round(supplyITT/total*100):0}%</b> of drivers`},
+    {color:'blue',   emoji:'🖥️',  label:'Total defcons',  val:total.toLocaleString(),       sub:`across all staff groups`,                                               kpi:'dc-all'},
+    {color:'red',    emoji:'🔴',  label:'D4 (critical)',  val:levels.D4,                    sub:`<b>${total?Math.round(levels.D4/total*100):0}%</b> of all defcons`,      kpi:'dc-level:D4'},
+    {color:'amber',  emoji:'🟠',  label:'D3 (high)',      val:levels.D3,                    sub:`<b>${total?Math.round(levels.D3/total*100):0}%</b> of all defcons`,      kpi:'dc-level:D3'},
+    {color:'green',  emoji:'🟢',  label:'D1 / D2',        val:(levels.D1+levels.D2),        sub:`D1: <b>${levels.D1}</b> · D2: <b>${levels.D2}</b>`,                     kpi:'dc-level:D1D2'},
+    {color:'teal',   emoji:'🔄',  label:'R1 reversals',   val:levels.R1,                    sub:`overstaffing / low demand`,                                              kpi:'dc-level:R1'},
+    {color:'purple', emoji:'📈',  label:'Demand ITT',     val:demandITT,                    sub:`<b>${total?Math.round(demandITT/total*100):0}%</b> of drivers`,          kpi:'dc-driver:Demand ITT'},
+    {color:'amber',  emoji:'📦',  label:'Supply ITT',     val:supplyITT,                    sub:`<b>${total?Math.round(supplyITT/total*100):0}%</b> of drivers`,          kpi:'dc-driver:Supply ITT'},
   ];
 
   const topSGFull = topSG[0];
   const isIntuitDc = document.documentElement.getAttribute('data-theme') === 'intuit';
   document.getElementById('dc-kpis').innerHTML = kpis.map(k=>`
-    <div class="kpi-card ${k.color}">
+    <div class="kpi-card ${k.color}" onclick="openDcKpiModal('${k.kpi}')" title="Click to view these defcons" style="cursor:pointer">
       ${isIntuitDc ? `<span class="kpi-emoji">${k.emoji}</span>` : ''}
       <div class="kpi-label">${isIntuitDc ? k.emoji + ' ' : ''}${k.label}</div>
       <div class="kpi-val" style="font-size:${k.val.toString().length>8?'18px':'28px'}">${k.val}</div>
       <div class="kpi-sub">${k.sub}</div>
+      <span class="kpi-hint">View records ↗</span>
     </div>`).join('') + `
-    <div class="kpi-card blue" style="position:relative" title="${topSGFull}">
+    <div class="kpi-card blue" style="position:relative;cursor:pointer" onclick="openDcKpiModal('topsg')" title="${topSGFull} — click to view">
       ${isIntuitDc ? `<span class="kpi-emoji">🏢</span>` : ''}
       <div class="kpi-label">${isIntuitDc ? '🏢 ' : ''}Top staff group</div>
       <div class="kpi-val" style="font-size:11px;font-family:monospace;font-weight:600;line-height:1.5;word-break:break-all;white-space:normal;margin-top:4px">${topSGFull}</div>
       <div class="kpi-sub"><b>${topSG[1]}</b> defcons</div>
+      <span class="kpi-hint">View records ↗</span>
     </div>`;
 }
 
@@ -1539,6 +1541,81 @@ function renderDefconAll(){
   renderDcKPIs();
   renderDcCharts();
   renderDcTable();
+}
+
+// ── DEFCON KPI MODAL ──
+function openDcKpiModal(kpi) {
+  let rows = [];
+  let title = '';
+  let meta = '';
+
+  if (kpi === 'dc-all') {
+    rows = dcFiltered;
+    title = 'All Defcons';
+    meta = rows.length + ' records in current filter';
+  } else if (kpi === 'dc-level:D4') {
+    rows = dcFiltered.filter(r => r.level === 'D4');
+    title = 'D4 Critical Defcons';
+    meta = rows.length + ' critical-level defcon records';
+  } else if (kpi === 'dc-level:D3') {
+    rows = dcFiltered.filter(r => r.level === 'D3');
+    title = 'D3 High Defcons';
+    meta = rows.length + ' high-level defcon records';
+  } else if (kpi === 'dc-level:D1D2') {
+    rows = dcFiltered.filter(r => r.level === 'D1' || r.level === 'D2');
+    title = 'D1 & D2 Defcons';
+    meta = rows.length + ' D1/D2 defcon records';
+  } else if (kpi === 'dc-level:R1') {
+    rows = dcFiltered.filter(r => r.level === 'R1');
+    title = 'R1 Reversals';
+    meta = rows.length + ' reversal records (overstaffing / low demand)';
+  } else if (kpi.startsWith('dc-driver:')) {
+    const driver = kpi.slice(10);
+    rows = dcFiltered.filter(r => r.driver === driver);
+    title = driver + ' — Defcon Records';
+    meta = rows.length + ' records driven by ' + driver;
+  } else if (kpi === 'topsg') {
+    const sgCount = {};
+    dcFiltered.forEach(r => { if(r.sg) sgCount[r.sg]=(sgCount[r.sg]||0)+1; });
+    const topSG = Object.entries(sgCount).sort((a,b)=>b[1]-a[1])[0]||['—',0];
+    rows = dcFiltered.filter(r => r.sg === topSG[0]);
+    title = topSG[0];
+    meta = rows.length + ' defcon records for this staff group';
+  }
+
+  document.getElementById('kpiModalTitle').textContent = title;
+  document.getElementById('kpiModalMeta').textContent = meta;
+  document.getElementById('kpiModalFooter').textContent = rows.length + ' total records';
+  kpiModalExpandedRow = null;
+
+  const levelBadge = (l) => {
+    const cls = {D1:'badge-queue',D2:'badge-yes',D3:'badge-contact',D4:'badge-nlh',R1:'badge-mit'}[l]||'badge-no';
+    return `<span class="badge ${cls}">${l||'—'}</span>`;
+  };
+
+  document.getElementById('kpiModalBody').innerHTML = rows.length === 0
+    ? '<div class="empty">No records match this filter.</div>'
+    : rows.map((r, i) => `
+        <div class="kpi-modal-row" style="cursor:default">
+          <div class="kpi-modal-main" style="display:grid;grid-template-columns:1fr 80px 1fr 180px 130px;gap:8px;padding:10px 16px;align-items:center">
+            <div style="font-size:11px;font-weight:600;color:var(--text);font-family:monospace;word-break:break-all;line-height:1.4">${r.sg||'—'}</div>
+            <div>${levelBadge(r.level)}</div>
+            <div style="font-size:11px;color:var(--text2)">${r.driver||'—'}</div>
+            <div style="font-size:11px;color:var(--text3)">${r.start||'—'}</div>
+            <div style="font-size:11px;color:var(--text3)">${r.by||'—'}</div>
+          </div>
+        </div>`).join('');
+
+  // Swap modal table header for defcon columns
+  document.querySelector('.kpi-modal-tbl-head').innerHTML = `
+    <span>Staff group</span><span>Level</span><span>Driver</span>
+    <span>Start time</span><span>Submitted by</span>`;
+  document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '1fr 80px 1fr 180px 130px';
+  document.querySelector('.kpi-modal-tbl-head').className = 'kpi-modal-tbl-head';
+
+  document.getElementById('kpiModal').classList.add('open');
+  document.getElementById('kpiModal').dataset.mode = 'defcon';
+  document.body.style.overflow = 'hidden';
 }
 
 // ── KPI MODAL ──
@@ -1653,9 +1730,19 @@ function toggleKpiModalRow(i) {
 
 function closeKpiModal(e) {
   if (e && e.target !== document.getElementById('kpiModal')) return;
-  document.getElementById('kpiModal').classList.remove('open');
+  const modal = document.getElementById('kpiModal');
+  modal.classList.remove('open');
   document.body.style.overflow = '';
   kpiModalExpandedRow = null;
+  // Reset header to callout columns if it was in defcon mode
+  if (modal.dataset.mode === 'defcon') {
+    document.querySelector('.kpi-modal-tbl-head').innerHTML = `
+      <span>Date / Time</span><span>Partner(s)</span><span>Type</span>
+      <span>Made by</span><span>Response</span><span>Escalated</span><span></span>`;
+    document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '';
+    document.querySelector('.kpi-modal-tbl-head').className = 'kpi-modal-tbl-head mg';
+    modal.dataset.mode = 'callout';
+  }
 }
 
 document.addEventListener('keydown', e => {
