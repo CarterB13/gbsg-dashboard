@@ -704,6 +704,23 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .export-option:hover{background:var(--bg3);color:var(--text)}
 .export-option-icon{font-size:14px;width:16px;text-align:center}
 .export-divider{height:1px;background:var(--border);margin:4px 0}
+/* SCREENSHOT BUTTON */
+.screenshot-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--text2);border:1px solid var(--border2);transition:all .15s;position:relative}
+.screenshot-btn:hover{background:var(--bg4);color:var(--text);border-color:var(--blue)}
+.screenshot-btn.capturing{opacity:.6;cursor:wait}
+[data-theme="dark"] .screenshot-btn{background:rgba(240,160,80,.08);color:#f0a050;border-color:rgba(240,160,80,.2)}
+[data-theme="dark"] .screenshot-btn:hover{background:rgba(240,160,80,.15);border-color:#f0a050}
+[data-theme="neural"] .screenshot-btn{background:rgba(91,155,213,.08);color:#5b9bd5;border-color:rgba(91,155,213,.2)}
+[data-theme="neural"] .screenshot-btn:hover{background:rgba(91,155,213,.15);border-color:#5b9bd5}
+[data-theme="intuit"] .screenshot-btn{background:rgba(58,88,120,.1);color:#3A5878;border-color:rgba(58,88,120,.25)}
+[data-theme="intuit"] .screenshot-btn:hover{background:rgba(58,88,120,.18);border-color:#3A5878}
+/* SCREENSHOT TOAST */
+.ss-toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 18px;font-size:13px;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:9999;display:flex;align-items:center;gap:10px;transform:translateY(80px);opacity:0;transition:all .3s ease}
+.ss-toast.show{transform:translateY(0);opacity:1}
+.ss-toast-icon{font-size:18px}
+.ss-toast-text{display:flex;flex-direction:column;gap:2px}
+.ss-toast-title{font-weight:600;font-size:13px}
+.ss-toast-sub{font-size:11px;color:var(--text3)}
 </style>
 </head>
 <body>
@@ -733,6 +750,10 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
         </button>
       </div>
       <div style="width:1px;height:24px;background:var(--border);margin:0 4px"></div>
+      <button class="screenshot-btn" id="screenshotBtn" onclick="takeScreenshot()" title="Screenshot current view">
+        <span>📷</span> Screenshot
+      </button>
+      <div style="width:1px;height:24px;background:var(--border);margin:0 4px"></div>
       <div style="position:relative">
         <button class="export-btn" onclick="toggleExportMenu(event)" id="exportBtn">
           ↓ Export
@@ -744,6 +765,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
           <button class="export-option" onclick="exportCSV('defcons')">
             <span class="export-option-icon">📋</span> Defcons — CSV
           </button>
+          <button class="export-option" onclick="exportCSV('prep')">
+            <span class="export-option-icon">📋</span> Prep time — CSV
+          </button>
           <div class="export-divider"></div>
           <button class="export-option" onclick="exportCSV('callouts-filtered')">
             <span class="export-option-icon">🔍</span> Filtered call outs — CSV
@@ -751,12 +775,18 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
           <button class="export-option" onclick="exportCSV('defcons-filtered')">
             <span class="export-option-icon">🔍</span> Filtered defcons — CSV
           </button>
+          <button class="export-option" onclick="exportCSV('prep-filtered')">
+            <span class="export-option-icon">🔍</span> Filtered prep time — CSV
+          </button>
           <div class="export-divider"></div>
           <button class="export-option" onclick="exportJSON('callouts')">
             <span class="export-option-icon">{ }</span> Call outs — JSON
           </button>
           <button class="export-option" onclick="exportJSON('defcons')">
             <span class="export-option-icon">{ }</span> Defcons — JSON
+          </button>
+          <button class="export-option" onclick="exportJSON('prep')">
+            <span class="export-option-icon">{ }</span> Prep time — JSON
           </button>
         </div>
       </div>
@@ -952,6 +982,15 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
           <button class="pag-btn" id="prep-next" onclick="prepNext()">Next →</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- SCREENSHOT TOAST -->
+  <div class="ss-toast" id="ssToast">
+    <span class="ss-toast-icon">✅</span>
+    <div class="ss-toast-text">
+      <span class="ss-toast-title">Screenshot saved!</span>
+      <span class="ss-toast-sub" id="ssToastSub">Downloading...</span>
     </div>
   </div>
 
@@ -1895,6 +1934,98 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeKpiModal(null);
 });
 
+// ── SCREENSHOT ──
+function takeScreenshot() {
+  const btn = document.getElementById('screenshotBtn');
+  btn.classList.add('capturing');
+  btn.innerHTML = '<span>⏳</span> Capturing…';
+
+  // Hide the modal if open
+  const modal = document.getElementById('kpiModal');
+  const modalWasOpen = modal.classList.contains('open');
+  if (modalWasOpen) modal.classList.remove('open');
+
+  // Use html2canvas
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+  script.onload = () => captureScreen(btn, modal, modalWasOpen);
+  script.onerror = () => {
+    showSsToast('error');
+    btn.classList.remove('capturing');
+    btn.innerHTML = '<span>📷</span> Screenshot';
+    if (modalWasOpen) modal.classList.add('open');
+  };
+
+  // If already loaded, run directly
+  if (window.html2canvas) {
+    captureScreen(btn, modal, modalWasOpen);
+  } else {
+    document.head.appendChild(script);
+  }
+}
+
+function captureScreen(btn, modal, modalWasOpen) {
+  const tab = activeTab;
+  const tabName = tab === 'callouts' ? 'CallOuts' : tab === 'defcons' ? 'Defcons' : 'PrepTime';
+  const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const fname = `GBSG_Dashboard_${tabName}_${theme}_${new Date().toISOString().slice(0,10)}.png`;
+
+  // Temporarily hide neural canvas for cleaner shot (optional — keep if you want particles)
+  const canvas = document.getElementById('neural-canvas');
+  const prevOpacity = canvas ? canvas.style.opacity : '0';
+
+  html2canvas(document.querySelector('.app'), {
+    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#0d1117',
+    useCORS: true,
+    allowTaint: true,
+    scale: 2,
+    logging: false,
+    ignoreElements: el => el.id === 'exportMenu' || el.id === 'kpiModal',
+  }).then(canvas => {
+    // Download
+    canvas.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fname;
+      a.click();
+      URL.revokeObjectURL(a.href);
+
+      showSsToast('success', fname);
+      btn.classList.remove('capturing');
+      btn.innerHTML = '<span>📷</span> Screenshot';
+      if (modalWasOpen) modal.classList.add('open');
+    }, 'image/png');
+  }).catch(err => {
+    console.error('Screenshot failed:', err);
+    showSsToast('error');
+    btn.classList.remove('capturing');
+    btn.innerHTML = '<span>📷</span> Screenshot';
+    if (modalWasOpen) modal.classList.add('open');
+  });
+}
+
+function showSsToast(status, fname) {
+  const toast = document.getElementById('ssToast');
+  const sub = document.getElementById('ssToastSub');
+  const icon = toast.querySelector('.ss-toast-icon');
+  const title = toast.querySelector('.ss-toast-title');
+
+  if (status === 'success') {
+    icon.textContent = '✅';
+    title.textContent = 'Screenshot saved!';
+    sub.textContent = fname || 'Downloaded to your device';
+    toast.style.borderColor = 'var(--green)';
+  } else {
+    icon.textContent = '❌';
+    title.textContent = 'Screenshot failed';
+    sub.textContent = 'Try right-clicking and Save as image';
+    toast.style.borderColor = 'var(--red)';
+  }
+
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
 // --- THEME ---
 // ── NEURAL PARTICLE ENGINE ──
 let neuralRAF = null;
@@ -2395,6 +2526,18 @@ function exportCSV(target) {
       }).join(',')
     ).join('\n');
     downloadFile(csv, `GBSG_CallOuts_${target === 'callouts-filtered' ? 'Filtered_' : ''}${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
+  } else if (target === 'prep' || target === 'prep-filtered') {
+    const data = target === 'prep' ? PREP : prepFiltered;
+    const headers = ['Date','Time','PrepTime','SubmittedBy','Queue1','Queue2','Queue3','Queue4','Queue5','Queue6','Queue7','Queue8'];
+    const csv = headers.join(',') + '\n' + data.map(r => {
+      const base = [r.d, r.tm, r.prep, r.by];
+      const queues = Array.from({length: 8}, (_, i) => r.queues[i] || '');
+      return [...base, ...queues].map(v => {
+        const s = v == null ? '' : String(v);
+        return s.includes(',') || s.includes('"') || s.includes('\n') ? '"'+s.replace(/"/g,'""')+'"' : s;
+      }).join(',');
+    }).join('\n');
+    downloadFile(csv, `GBSG_PrepTime_${target === 'prep-filtered' ? 'Filtered_' : ''}${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
   } else {
     const data = target === 'defcons' ? DEFCONS : dcFiltered;
     const fields = ['sg','level','driver','start','revert','by'];
@@ -2410,8 +2553,8 @@ function exportCSV(target) {
 }
 
 function exportJSON(target) {
-  const data = target === 'callouts' ? CALLOUTS : DEFCONS;
-  const fname = `GBSG_${target === 'callouts' ? 'CallOuts' : 'Defcons'}_${new Date().toISOString().slice(0,10)}.json`;
+  const data = target === 'callouts' ? CALLOUTS : target === 'defcons' ? DEFCONS : PREP;
+  const fname = `GBSG_${target === 'callouts' ? 'CallOuts' : target === 'defcons' ? 'Defcons' : 'PrepTime'}_${new Date().toISOString().slice(0,10)}.json`;
   downloadFile(JSON.stringify(data, null, 2), fname, 'application/json');
 }
 
