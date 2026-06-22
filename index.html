@@ -541,6 +541,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .kpi-modal-meta{font-size:11px;color:var(--text3);margin-top:2px}
 .kpi-modal-close{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text2);font-size:16px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
 .kpi-modal-close:hover{background:var(--bg4);color:var(--text)}
+.kpi-modal-action-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:var(--radius);font-size:11px;font-weight:600;cursor:pointer;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);transition:all .15s;white-space:nowrap}
+.kpi-modal-action-btn:hover{background:var(--blue-dim);color:var(--blue);border-color:var(--blue)}
+.kpi-modal-action-btn.capturing{opacity:.6;cursor:wait}
+[data-theme="dark"] .kpi-modal-action-btn:hover{background:rgba(240,160,80,.12);color:#f0a050;border-color:#f0a050}
+[data-theme="neural"] .kpi-modal-action-btn:hover{background:rgba(91,155,213,.12);color:#5b9bd5;border-color:#5b9bd5}
+[data-theme="intuit"] .kpi-modal-action-btn{background:#EEF2F6;border:1px solid #A8B8C8;color:#3A4858}
+[data-theme="intuit"] .kpi-modal-action-btn:hover{background:#D8E4F0;color:#3A5878;border-color:#3A5878}
 .kpi-modal-body{overflow-y:auto;flex:1}
 .kpi-modal-tbl-head{display:grid;padding:8px 16px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);position:sticky;top:0;z-index:2}
 .kpi-modal-tbl-head.mg{grid-template-columns:90px 1fr 140px 100px 100px 100px 24px}
@@ -1002,7 +1009,15 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
           <div class="kpi-modal-title" id="kpiModalTitle">Call Outs</div>
           <div class="kpi-modal-meta" id="kpiModalMeta"></div>
         </div>
-        <button class="kpi-modal-close" onclick="closeKpiModal(null)">✕</button>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="kpi-modal-action-btn" id="modalExportBtn" onclick="exportModalData()" title="Export this data as CSV">
+            ↓ CSV
+          </button>
+          <button class="kpi-modal-action-btn" id="modalScreenshotBtn" onclick="screenshotModal()" title="Screenshot this popup">
+            📷
+          </button>
+          <button class="kpi-modal-close" onclick="closeKpiModal(null)">✕</button>
+        </div>
       </div>
       <div class="kpi-modal-body">
         <div class="kpi-modal-tbl-head mg">
@@ -1728,6 +1743,90 @@ function renderDefconAll(){
   renderDcTable();
 }
 
+// ── MODAL ACTION BUTTONS — Export & Screenshot ──
+let _modalCurrentRows = [];
+let _modalCurrentTitle = '';
+let _modalCurrentMode = 'callout'; // 'callout' | 'defcon' | 'prep'
+
+function exportModalData() {
+  if (!_modalCurrentRows.length) return;
+  const date = new Date().toISOString().slice(0,10);
+  const safeName = _modalCurrentTitle.replace(/[^a-z0-9]/gi,'_').slice(0,40);
+  let csv = '';
+
+  if (_modalCurrentMode === 'callout') {
+    csv = ['Date,Time,Type,Partner,Escalated,EscalatedTo,MadeBy,PartnerResponse,Notes']
+      .concat(_modalCurrentRows.map(r => [r.d,r.tm,r.t,r.p,r.esc,r.escTo,r.mb,r.resp,r.n]
+        .map(v => { const s=String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s; }).join(','))).join('\n');
+    downloadFile(csv, `GBSG_KPI_${safeName}_${date}.csv`, 'text/csv');
+  } else if (_modalCurrentMode === 'defcon') {
+    csv = ['StaffGroup,Level,Driver,StartTime,RevertTime,SubmittedBy']
+      .concat(_modalCurrentRows.map(r => [r.sg,r.level,r.driver,r.start,r.revert,r.by]
+        .map(v => { const s=String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s; }).join(','))).join('\n');
+    downloadFile(csv, `GBSG_KPI_${safeName}_${date}.csv`, 'text/csv');
+  } else if (_modalCurrentMode === 'prep') {
+    const headers = ['Date','Time','PrepTime','SubmittedBy','Queue1','Queue2','Queue3','Queue4','Queue5','Queue6','Queue7','Queue8'];
+    csv = [headers.join(',')]
+      .concat(_modalCurrentRows.map(r => {
+        const base = [r.d,r.tm,r.prep,r.by];
+        const qs = Array.from({length:8},(_,i)=>r.queues[i]||'');
+        return [...base,...qs].map(v => { const s=String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s; }).join(',');
+      })).join('\n');
+    downloadFile(csv, `GBSG_KPI_${safeName}_${date}.csv`, 'text/csv');
+  }
+
+  showSsToast('success', `GBSG_KPI_${safeName}_${date}.csv`);
+}
+
+function screenshotModal() {
+  const btn = document.getElementById('modalScreenshotBtn');
+  btn.classList.add('capturing');
+  btn.textContent = '⏳';
+
+  const modalEl = document.querySelector('.kpi-modal');
+  const date = new Date().toISOString().slice(0,10);
+  const safeName = _modalCurrentTitle.replace(/[^a-z0-9]/gi,'_').slice(0,40);
+  const fname = `GBSG_KPI_${safeName}_${date}.png`;
+  const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+
+  const doCapture = () => {
+    // Get background color from CSS variable
+    const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg2').trim() || '#161b27';
+    html2canvas(modalEl, {
+      backgroundColor: bgColor,
+      useCORS: true,
+      allowTaint: true,
+      scale: 2,
+      logging: false,
+    }).then(canvas => {
+      canvas.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = fname;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showSsToast('success', fname);
+        btn.classList.remove('capturing');
+        btn.textContent = '📷';
+      }, 'image/png');
+    }).catch(() => {
+      showSsToast('error');
+      btn.classList.remove('capturing');
+      btn.textContent = '📷';
+    });
+  };
+
+  if (window.html2canvas) {
+    doCapture();
+  } else {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload = doCapture;
+    s.onerror = () => { showSsToast('error'); btn.classList.remove('capturing'); btn.textContent = '📷'; };
+    document.head.appendChild(s);
+  }
+}
+
 // ── DEFCON KPI MODAL ──
 function openDcKpiModal(kpi) {
   let rows = [];
@@ -1798,6 +1897,9 @@ function openDcKpiModal(kpi) {
   document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '1fr 80px 1fr 180px 130px';
   document.querySelector('.kpi-modal-tbl-head').className = 'kpi-modal-tbl-head';
 
+  _modalCurrentRows = rows;
+  _modalCurrentTitle = title;
+  _modalCurrentMode = 'defcon';
   document.getElementById('kpiModal').classList.add('open');
   document.getElementById('kpiModal').dataset.mode = 'defcon';
   document.body.style.overflow = 'hidden';
@@ -1890,6 +1992,9 @@ function openKpiModal(kpi) {
         </div>`;
       }).join('');
 
+  _modalCurrentRows = rows;
+  _modalCurrentTitle = title;
+  _modalCurrentMode = 'callout';
   document.getElementById('kpiModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -2477,6 +2582,9 @@ function openPrepKpiModal(kpi) {
   document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '90px 90px 110px 1fr 140px';
   document.querySelector('.kpi-modal-tbl-head').className = 'kpi-modal-tbl-head';
 
+  _modalCurrentRows = rows;
+  _modalCurrentTitle = title;
+  _modalCurrentMode = 'prep';
   document.getElementById('kpiModal').classList.add('open');
   document.getElementById('kpiModal').dataset.mode = 'prep';
   document.body.style.overflow = 'hidden';
