@@ -797,7 +797,61 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
           </button>
         </div>
       </div>
-      <div class="header-meta">Call Out + Defcon Tracker &nbsp;·&nbsp; May 18 – Jun 18, 2026</div>
+      <div class="header-meta" style="position:relative">
+        <button id="date-range-btn" onclick="toggleDateDropdown()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;transition:background 0.15s" onmouseenter="this.style.background='var(--bg4)'" onmouseleave="this.style.background='none'">
+          <span id="date-range-label">📅 Reporting periods</span>
+          <span style="font-size:9px;opacity:0.6">▾</span>
+        </button>
+        <div id="date-dropdown" style="display:none;position:absolute;right:0;top:calc(100% + 4px);background:var(--bg2);border:1px solid var(--border2, var(--border));border-radius:10px;min-width:260px;box-shadow:0 12px 32px rgba(0,0,0,0.6);z-index:9999;overflow:hidden">
+          <div style="padding:8px 12px 6px;font-size:10px;color:var(--text3);font-weight:600;letter-spacing:0.05em;border-bottom:1px solid var(--border)">DATA SOURCES &amp; REPORTING PERIODS</div>
+          <div style="padding:6px 0">
+            <div style="display:flex;align-items:center;gap:10px;padding:7px 14px;font-size:11px;color:var(--text)">
+              <span style="font-size:14px">📞</span>
+              <div>
+                <div style="font-weight:600;color:var(--text)">Call Outs</div>
+                <div style="color:var(--text3);font-size:10px">May 18 – Jun 18, 2026 &nbsp;·&nbsp; 1,132 records</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:7px 14px;font-size:11px;color:var(--text)">
+              <span style="font-size:14px">🔴</span>
+              <div>
+                <div style="font-weight:600;color:var(--text)">Defcons</div>
+                <div style="color:var(--text3);font-size:10px">Feb 6 – Jun 18, 2026 &nbsp;·&nbsp; 387 records</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:7px 14px;font-size:11px;color:var(--text)">
+              <span style="font-size:14px">⏱️</span>
+              <div>
+                <div style="font-weight:600;color:var(--text)">Prep Time</div>
+                <div style="color:var(--text3);font-size:10px">Jun 12 – Jun 19, 2026 &nbsp;·&nbsp; 17 records</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:7px 14px;font-size:11px;color:var(--text)">
+              <span style="font-size:14px">🚦</span>
+              <div>
+                <div style="font-weight:600;color:var(--text)">INC / INV</div>
+                <div style="color:var(--text3);font-size:10px">May 28 – Jun 22, 2026 &nbsp;·&nbsp; 72 records</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:6px 12px 8px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);text-align:center">
+            Last updated: Jun 23, 2026
+          </div>
+        </div>
+      </div>
+      <script>
+        function toggleDateDropdown() {
+          const d = document.getElementById('date-dropdown');
+          d.style.display = d.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+          const btn = document.getElementById('date-range-btn');
+          const dd = document.getElementById('date-dropdown');
+          if (dd && !dd.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+            dd.style.display = 'none';
+          }
+        });
+      </script>
     </div>
   </div>
 
