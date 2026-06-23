@@ -1089,6 +1089,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
         <span class="filter-label">3rd party</span>
         <div class="ms-wrap" id="ms-inc-3p"></div>
       </div>
+      <div class="filter-group" style="flex:1;min-width:200px">
+        <span class="filter-label">Search</span>
+        <div style="position:relative">
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text3);pointer-events:none">🔍</span>
+          <input type="text" id="inc-search" placeholder="INC#, INV#, ATTN#, service, driver…" oninput="applyIncFilters()" style="width:100%;padding:5px 10px 5px 26px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:11px;box-sizing:border-box;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+      </div>
       <div class="filter-group">
         <span class="filter-label">From</span>
         <input type="date" id="inc-f-from" value="2026-05-28" onchange="applyIncFilters()">
@@ -2859,6 +2866,7 @@ function applyIncFilters() {
   const impf = msGetValues('ms-inc-impact');
   const expf = msGetValues('ms-inc-expert');
   const tpf = msGetValues('ms-inc-3p');
+  const sq = (document.getElementById('inc-search')?.value || '').trim().toLowerCase();
   incFiltered = INC_DATA.filter(r => {
     if (tf.length && !tf.includes(r.type)) return false;
     if (pf.length && !pf.includes(r.priority)) return false;
@@ -2867,6 +2875,10 @@ function applyIncFilters() {
     if (impf.length && !impf.includes(r.impact)) return false;
     if (expf.includes('yes') && !r.expertTooling) return false;
     if (tpf.includes('yes') && !r.thirdParty) return false;
+    if (sq) {
+      const hay = [r.id, r.ibc||'', r.service, r.driver||'', r.summary||'', r.rootCause||'', r.impactedGroups||'', r.staffGroups||'', r.type].join(' ').toLowerCase();
+      if (!hay.includes(sq)) return false;
+    }
     if (fd && r.date < fd) return false;
     if (td && r.date > td) return false;
     return true;
@@ -2880,6 +2892,7 @@ function applyIncFilters() {
 
 function resetIncFilters() {
   ['ms-inc-type','ms-inc-priority','ms-inc-status','ms-inc-service','ms-inc-impact','ms-inc-expert','ms-inc-3p'].forEach(id => msClear(id));
+  const si = document.getElementById('inc-search'); if(si) si.value = '';
   document.getElementById('inc-f-from').value = '2026-05-28';
   document.getElementById('inc-f-to').value = '2026-06-22';
   incFiltered = [...INC_DATA];
