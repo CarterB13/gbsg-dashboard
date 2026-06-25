@@ -1451,6 +1451,7 @@ function applyCoFilters() {
   const ef = msGetValues('ms-esc');
   const fd = document.getElementById('f-from').value;
   const td = document.getElementById('f-to').value;
+  const sq = (document.getElementById('co-search')?.value || '').trim().toLowerCase();
   coFiltered = CALLOUTS.filter(r => {
     if (pf.length && !pf.some(p => r.p.split(',').map(s=>s.trim()).includes(p))) return false;
     if (tf.length && !tf.includes(r.t)) return false;
@@ -1462,6 +1463,10 @@ function applyCoFilters() {
     }
     if (fd && r.d < fd) return false;
     if (td && r.d > td) return false;
+    if (sq) {
+      const hay = [r.p, r.t, r.mb, r.escTo||'', r.n||''].join(' ').toLowerCase();
+      if (!hay.includes(sq)) return false;
+    }
     return true;
   });
   coPage = 0;
@@ -1800,12 +1805,17 @@ function applyDcFilters() {
   const bf = msGetValues('ms-dc-by');
   const fd = document.getElementById('dc-f-from').value;
   const td = document.getElementById('dc-f-to').value;
+  const sq = (document.getElementById('dc-search')?.value || '').trim().toLowerCase();
   dcFiltered = DEFCONS.filter(r => {
     if (df.length && !df.includes(r.driver)) return false;
     if (bf.length && !bf.includes(r.by)) return false;
     if (dcLevelFilter !== 'all' && r.level !== dcLevelFilter) return false;
     if (fd && r.sd && r.sd < fd) return false;
     if (td && r.sd && r.sd > td) return false;
+    if (sq) {
+      const hay = [r.sg, r.driver||'', r.by||'', r.level||''].join(' ').toLowerCase();
+      if (!hay.includes(sq)) return false;
+    }
     return true;
   });
   dcPage = 0;
