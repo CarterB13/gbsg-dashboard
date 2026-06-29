@@ -2105,7 +2105,7 @@ function openDcKpiModal(kpi) {
 
   document.getElementById('kpiModalTitle').textContent = title;
   document.getElementById('kpiModalMeta').textContent = meta;
-  document.getElementById('kpiModalFooter').textContent = rows.length + ' total records';
+  document.getElementById('kpiModalFooter').textContent = rows.length + ' total records · click any row to expand details';
   kpiModalExpandedRow = null;
 
   const levelBadge = (l) => {
@@ -2115,22 +2115,39 @@ function openDcKpiModal(kpi) {
 
   document.getElementById('kpiModalBody').innerHTML = rows.length === 0
     ? '<div class="empty">No records match this filter.</div>'
-    : rows.map((r, i) => `
-        <div class="kpi-modal-row" style="cursor:default">
-          <div class="kpi-modal-main" style="display:grid;grid-template-columns:1fr 80px 1fr 180px 130px;gap:8px;padding:10px 16px;align-items:center">
+    : rows.map((r, i) => {
+        const expandContent = `
+          <div class="expand-meta" style="margin-bottom:10px;display:flex;gap:18px;flex-wrap:wrap">
+            <div class="expand-meta-item"><span class="expand-meta-key">Staff group</span><span class="expand-meta-val" style="font-family:monospace;font-size:11px">${r.sg||'—'}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Level</span><span class="expand-meta-val">${levelBadge(r.level)}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Submitted by</span><span class="expand-meta-val">${r.by||'—'}</span></div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div class="expand-label" style="margin-bottom:6px">Driver</div>
+            <div class="note-block">${r.driver||'—'}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><div class="expand-label" style="margin-bottom:6px">Start time</div><div class="note-block" style="font-size:11px">${r.start||'—'}</div></div>
+            <div><div class="expand-label" style="margin-bottom:6px">Expected revert</div><div class="note-block" style="font-size:11px">${r.revert||'—'}</div></div>
+          </div>`;
+        return `<div class="kpi-modal-row">
+          <div class="kpi-modal-main" style="display:grid;grid-template-columns:1fr 80px 1fr 180px 130px 24px;gap:8px;padding:10px 16px;align-items:center;cursor:pointer" onclick="toggleKpiModalRow(${i})">
             <div style="font-size:11px;font-weight:600;color:var(--text);font-family:monospace;word-break:break-all;line-height:1.4">${r.sg||'—'}</div>
             <div>${levelBadge(r.level)}</div>
-            <div style="font-size:11px;color:var(--text2)">${r.driver||'—'}</div>
+            <div style="font-size:11px;color:var(--text2)">${(r.driver||'—').slice(0,30)}${(r.driver||'').length>30?'…':''}</div>
             <div style="font-size:11px;color:var(--text3)">${r.start||'—'}</div>
             <div style="font-size:11px;color:var(--text3)">${r.by||'—'}</div>
+            <div><span class="chev" id="kchev-${i}">▾</span></div>
           </div>
-        </div>`).join('');
+          <div class="kpi-modal-expand" id="kexp-${i}">${expandContent}</div>
+        </div>`;
+      }).join('');
 
   // Swap modal table header for defcon columns
   document.querySelector('.kpi-modal-tbl-head').innerHTML = `
     <span>Staff group</span><span>Level</span><span>Driver</span>
-    <span>Start time</span><span>Submitted by</span>`;
-  document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '1fr 80px 1fr 180px 130px';
+    <span>Start time</span><span>Submitted by</span><span></span>`;
+  document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '1fr 80px 1fr 180px 130px 24px';
   document.querySelector('.kpi-modal-tbl-head').className = 'kpi-modal-tbl-head';
 
   _modalCurrentRows = rows;
@@ -2830,7 +2847,7 @@ function openPrepKpiModal(kpi) {
 
   document.getElementById('kpiModalTitle').textContent = title;
   document.getElementById('kpiModalMeta').textContent = meta;
-  document.getElementById('kpiModalFooter').textContent = rows.length + ' total records';
+  document.getElementById('kpiModalFooter').textContent = rows.length + ' total records · click any row to expand details';
   kpiModalExpandedRow = null;
 
   const prepBadge = (p) => p === '30 Seconds'
@@ -2839,22 +2856,36 @@ function openPrepKpiModal(kpi) {
 
   document.getElementById('kpiModalBody').innerHTML = rows.length === 0
     ? '<div class="empty">No records match.</div>'
-    : rows.map((r, i) => `
-        <div class="kpi-modal-row" style="cursor:default">
-          <div class="kpi-modal-main" style="display:grid;grid-template-columns:90px 90px 110px 1fr 140px;gap:8px;padding:10px 16px;align-items:start">
-            <div class="cell-date">${r.d.slice(5)}</div>
-            <div style="font-size:11px;color:var(--text2)">${r.tm}</div>
+    : rows.map((r, i) => {
+        const expandContent = `
+          <div class="expand-meta" style="margin-bottom:10px;display:flex;gap:18px;flex-wrap:wrap">
+            <div class="expand-meta-item"><span class="expand-meta-key">Date &amp; time</span><span class="expand-meta-val">${r.d} ${r.tm}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Prep time</span><span class="expand-meta-val">${prepBadge(r.prep)}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Submitted by</span><span class="expand-meta-val">${r.by}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Queues adjusted</span><span class="expand-meta-val">${r.queues.length}</span></div>
+          </div>
+          <div class="expand-label" style="margin-bottom:6px">Queues adjusted</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            ${r.queues.map(q=>`<span class="note-block" style="font-size:11px;padding:4px 10px;font-family:monospace;display:inline-block">${q}</span>`).join('')}
+          </div>`;
+        return `<div class="kpi-modal-row">
+          <div class="kpi-modal-main" style="display:grid;grid-template-columns:90px 90px 110px 1fr 140px 24px;gap:8px;padding:10px 16px;align-items:center;cursor:pointer" onclick="toggleKpiModalRow(${i})">
+            <div><div class="cell-date">${r.d.slice(5)}</div><div class="cell-time" style="font-size:10px;color:var(--text3)">${r.tm}</div></div>
             <div>${prepBadge(r.prep)}</div>
+            <div style="font-size:11px;color:var(--text3)">${r.queues.length} queue${r.queues.length!==1?'s':''}</div>
             <div style="display:flex;flex-wrap:wrap;gap:3px">${r.queues.map(q=>`<span style="font-size:10px;padding:1px 6px;border-radius:8px;background:var(--bg4);color:var(--text2);font-family:monospace">${q.replace('sbseg-ol_','').replace(/_cmb$/,'')}</span>`).join('')}</div>
             <div class="cell-mb">${r.by}</div>
+            <div><span class="chev" id="kchev-${i}">▾</span></div>
           </div>
-        </div>`).join('');
+          <div class="kpi-modal-expand" id="kexp-${i}">${expandContent}</div>
+        </div>`;
+      }).join('');
 
   // Swap header for prep columns
   document.querySelector('.kpi-modal-tbl-head').innerHTML = `
-    <span>Date</span><span>Time</span><span>Prep</span>
-    <span>Queues adjusted</span><span>Submitted by</span>`;
-  document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '90px 90px 110px 1fr 140px';
+    <span>Date / Time</span><span>Prep</span><span>Count</span>
+    <span>Queues adjusted</span><span>Submitted by</span><span></span>`;
+  document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '90px 90px 110px 1fr 140px 24px';
   document.querySelector('.kpi-modal-tbl-head').className = 'kpi-modal-tbl-head';
 
   _modalCurrentRows = rows;
@@ -3334,16 +3365,23 @@ function openIncKpiModal(kpi) {
     ? '<div class="empty">No records match.</div>'
     : rows.map((r,i) => {
       const expandContent = `
-        <div class="kpi-modal-expand" id="kexp-${i}" style="padding:12px 16px;border-top:1px solid var(--border);background:var(--bg);display:none">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
-            <div><div class="expand-label" style="margin-bottom:4px">📝 Summary</div><div class="note-block" style="font-size:12px">${r.summary}</div></div>
-            <div><div class="expand-label" style="margin-bottom:4px">🔍 Root cause</div><div class="note-block" style="font-size:12px">${r.rootCause}</div></div>
+        <div class="kpi-modal-expand" id="kexp-${i}">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+            <div class="expand-meta-item"><span class="expand-meta-key">CS Start</span><span class="expand-meta-val">${r.csStart||'—'}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">CS End</span><span class="expand-meta-val">${r.csEnd||'—'}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Impact</span><span class="expand-meta-val">${r.impact||'—'}</span></div>
+            <div class="expand-meta-item"><span class="expand-meta-key">Driver</span><span class="expand-meta-val">${r.driver||'—'}</span></div>
+            ${r.ttr&&r.ttr!=='—'?`<div class="expand-meta-item"><span class="expand-meta-key">TTD</span><span class="expand-meta-val">${r.ttd}</span></div><div class="expand-meta-item"><span class="expand-meta-key">TTR</span><span class="expand-meta-val">${r.ttr}</span></div>`:''}
+            ${r.chg&&r.chg!=='—'&&r.chg!=='N/A'?`<div class="expand-meta-item"><span class="expand-meta-key">CHG</span><span class="expand-meta-val" style="font-family:monospace">${r.chg}</span></div>`:''}
+            ${r.expertTooling?'<div class="expand-meta-item"><span class="expand-meta-key">Expert tooling</span><span class="expand-meta-val" style="color:var(--purple)">⚠ Impacted</span></div>':''}
+            ${r.thirdParty?'<div class="expand-meta-item"><span class="expand-meta-key">Third party</span><span class="expand-meta-val" style="color:var(--teal)">✓ Yes</span></div>':''}
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
-            <div><div class="expand-label" style="margin-bottom:4px">👥 Impacted groups</div><div class="note-block" style="font-size:12px">${r.impactedGroups}</div></div>
-            <div><div class="expand-label" style="margin-bottom:4px">📊 Customer count</div><div class="note-block" style="font-size:12px">${r.customerCount}</div></div>
+            <div><div class="expand-label" style="margin-bottom:4px">📝 Summary</div><div class="note-block" style="font-size:11px">${r.summary||'—'}</div></div>
+            <div><div class="expand-label" style="margin-bottom:4px">🔍 Root cause</div><div class="note-block" style="font-size:11px">${r.rootCause||'—'}</div></div>
           </div>
-          <div><div class="expand-label" style="margin-bottom:4px">🏢 Staff groups impacted</div><div class="note-block" style="font-size:12px">${r.staffGroups}</div></div>
+          ${r.fix&&r.fix!=='—'?`<div style="margin-bottom:10px"><div class="expand-label" style="margin-bottom:4px">🔧 Fix / Mitigation</div><div class="note-block" style="font-size:11px">${r.fix}</div></div>`:''}
+          ${r.engineers&&r.engineers!=='—'?`<div><div class="expand-label" style="margin-bottom:4px">👷 Engineers</div><div class="note-block" style="font-size:11px">${r.engineers}</div></div>`:''}
         </div>`;
       return `<div class="kpi-modal-row">
         <div class="kpi-modal-main" style="display:grid;grid-template-columns:160px 60px 90px 1fr 100px 24px;gap:8px;padding:10px 16px;align-items:center;cursor:pointer" onclick="toggleKpiModalRow(${i})">
