@@ -1881,8 +1881,8 @@ canvas:hover { opacity: 0.9; }
         <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
           <thead><tr style="background:var(--bg3)">
             <th class="th">Date</th><th class="th">Staff Group</th><th class="th">Partner</th>
-            <th class="th r">Required FTE</th><th class="th r">Scheduled FTE</th>
-            <th class="th r">Net FTE</th><th class="th r">Net %</th><th class="th r">Coverage %</th>
+            <th class="th r">Required FTE</th><th class="th r">Actual FTE</th>
+            <th class="th r">Net FTE</th><th class="th r">Net %</th><th class="th r">Occupancy</th>
           </tr></thead><tbody id="ds-s-tbody"></tbody>
         </table></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
@@ -5949,22 +5949,30 @@ function _renderDsDTblBase(){
 }
 
 function _renderDsSTbl(){
-  var st=_dsSPg*_DS_PG,sl=_dsSDf.slice(st,st+_DS_PG);
-  var tb=document.getElementById('ds-s-tbody'),pi=document.getElementById('ds-s-pag'),m=document.getElementById('ds-s-tbl-meta');
-  if(m)m.textContent=_dsSEf.length+' records';
-  if(pi)pi.textContent=(st+1)+'–'+Math.min(st+_DS_PG,_dsSEf.length)+' of '+_dsSEf.length;
+  var st=_dsSPg*_DS_PG, sl=_dsSDf.slice(st,st+_DS_PG);
+  var tb=document.getElementById('ds-s-tbody');
+  var pi=document.getElementById('ds-s-pag');
+  var m=document.getElementById('ds-s-tbl-meta');
+  if(m)m.textContent=_dsSDf.length+' records';
+  if(pi)pi.textContent=(st+1)+'–'+Math.min(st+_DS_PG,_dsSDf.length)+' of '+_dsSDf.length;
   var p=document.getElementById('ds-s-prev');if(p)p.disabled=_dsSPg===0;
-  var n=document.getElementById('ds-s-next');if(n)n.disabled=st+_DS_PG>=_dsSEf.length;
+  var n=document.getElementById('ds-s-next');if(n)n.disabled=st+_DS_PG>=_dsSDf.length;
   if(!tb)return;
   tb.innerHTML=sl.map(function(r){
-    var np=_sf(r['Actual Net % - (FTE)']),cv=_sf(r['Effective Actual Coverage % - (FTE)']);
+    var np=_sf(r['Actual Net % - (FTE)']), cv=_sf(r['Effective Actual Coverage % - (FTE)']);
+    var occ=_sf(r['Occupancy (FTE)']);
     var nc=np>=1?'var(--green)':np>=0.8?'var(--amber)':'var(--red)';
-    return '<tr class="tbl-row"><td class="td">'+r['Day']+'</td><td class="td" style="font-weight:600">'+r['Expert Ecosystem Parent']+'</td>'
+    var net=_sf(r['Actual Net (FTE)']);
+    return '<tr class="tbl-row">'
+      +'<td class="td" style="color:var(--text3);white-space:nowrap">'+r['Day']+'</td>'
+      +'<td class="td" style="font-family:monospace;font-size:10px">'+r['Staff Group']+'</td>'
+      +'<td class="td">'+r['Partner']+'</td>'
       +'<td class="td r">'+(_sf(r['2. Baseline Adjusted Productive Required (FTE)'])||0).toFixed(1)+'</td>'
-      +'<td class="td r">'+(_sf(r['Productive Scheduled (FTE)'])||0).toFixed(1)+'</td>'
-      +'<td class="td r" style="color:'+(_sf(r['Actual Net (FTE)'])>=0?'var(--green)':'var(--red)')+'">'+(((_sf(r['Actual Net (FTE)'])||0)>=0?'+':'')+((_sf(r['Actual Net (FTE)'])||0).toFixed(1)))+'</td>'
+      +'<td class="td r">'+(_sf(r['Actual Prod FTE/Hours'])||0).toFixed(1)+'</td>'
+      +'<td class="td r" style="color:'+(net>=0?'var(--green)':'var(--red)')+'">'+((net||0)>=0?'+':'')+(net||0).toFixed(1)+'</td>'
       +'<td class="td r" style="font-weight:700;color:'+nc+'">'+_dsPct(np)+'</td>'
-      +'<td class="td r">'+_dsPct(cv)+'</td></tr>';
+      +'<td class="td r">'+(occ!==null?_dsPct(occ):'—')+'</td>'
+      +'</tr>';
   }).join('');
 }
 
