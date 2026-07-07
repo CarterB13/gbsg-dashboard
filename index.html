@@ -766,7 +766,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .ms-dropdown.open{display:block}
 .ms-option{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--radius);font-size:12px;color:var(--text2);cursor:pointer;transition:background .1s}
 .ms-option span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px}
-#ds-d-sg-fg .ms-dropdown,#ds-s-sg-fg .ms-dropdown{min-width:340px;max-height:280px;overflow-y:auto}
+#ds-d-sg-fg .ms-dropdown,#ds-s-sg-fg .ms-dropdown{min-width:340px}
+#ds-d-sg-fg .ms-options-list,#ds-s-sg-fg .ms-options-list{max-height:240px;overflow-y:auto}
+.ms-options-list{max-height:200px;overflow-y:auto}
+.ms-dropdown .ms-options-list{scroll-behavior:smooth}
+.ms-highlight{background:var(--blue) !important;color:#fff !important;border-radius:4px}
+.ms-highlight span{color:#fff !important}
 #ds-d-sg-fg .ms-wrap,#ds-s-sg-fg .ms-wrap{min-width:160px}
 .ms-option:hover{background:var(--bg3);color:var(--text)}
 .ms-option.selected{color:var(--blue)}
@@ -1966,17 +1971,28 @@ function msInit(containerId, options, placeholder, onChange) {
   const wrap = document.getElementById(containerId);
   if (!wrap) return;
   MS_STATE[containerId] = new Set();
-  wrap.innerHTML = `
-    <div class="ms-trigger" id="${containerId}-trigger" onclick="msToggle('${containerId}')">
-      <div class="ms-display" id="${containerId}-display"><span class="ms-placeholder">${placeholder}</span></div>
-      <span class="ms-arrow">▾</span>
-    </div>
-    <div class="ms-dropdown" id="${containerId}-dropdown">
-      ${options.map(o => `<div class="ms-option" id="${containerId}-opt-${CSS.escape(o.value||o)}" onclick="msSelect('${containerId}','${(o.value||o).replace(/'/g,"\\'")}','${(o.label||o.value||o).replace(/'/g,"\\'")}')">
-        <span class="ms-check"></span><span title="${o.label||o.value||o}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:300px">${o.label||o.value||o}</span>
-      </div>`).join('')}
-      <div class="ms-clear" onclick="msClear('${containerId}')">Clear all</div>
-    </div>`;
+  const optHtml = options.map(function(o) {
+    const val = (o.value||o).replace(/'/g, "\\'");
+    const lbl = (o.label||o.value||o).replace(/'/g, "\\'");
+    const display = o.label||o.value||o;
+    return '<div class="ms-option" id="'+containerId+'-opt-'+CSS.escape(o.value||o)+'" onclick="msSelect(\''+containerId+'\',\''+val+'\',\''+lbl+'\')"><span class="ms-check"></span><span title="'+display+'" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:300px">'+display+'</span></div>';
+  }).join('');
+  wrap.innerHTML =
+    '<div class="ms-trigger" id="'+containerId+'-trigger" onclick="msToggle(\''+containerId+'\')">'+
+      '<div class="ms-display" id="'+containerId+'-display"><span class="ms-placeholder">'+placeholder+'</span></div>'+
+      '<span class="ms-arrow">▾</span>'+
+    '</div>'+
+    '<div class="ms-dropdown" id="'+containerId+'-dropdown">'+
+      '<div style="padding:4px 4px 2px;position:sticky;top:0;background:var(--bg2);z-index:1">'+
+        '<input id="'+containerId+'-search" type="text" placeholder="Type to search..." '+
+          'style="width:100%;box-sizing:border-box;padding:5px 8px;font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);outline:none" '+
+          'oninput="msFilterOptions(\''+containerId+'\',this.value)" '+
+          'onkeydown="msSearchKey(event,\''+containerId+'\')" '+
+          'onclick="event.stopPropagation()">'+
+      '</div>'+
+      '<div class="ms-options-list" id="'+containerId+'-list">'+optHtml+'</div>'+
+      '<div class="ms-clear" onclick="msClear(\''+containerId+'\')">Clear all</div>'+
+    '</div>';
   wrap._onChange = onChange;
   wrap._placeholder = placeholder;
 }
@@ -1990,7 +2006,60 @@ function msToggle(id) {
     el.classList.remove('open');
     el.previousElementSibling && el.previousElementSibling.classList.remove('open');
   });
-  if (!isOpen) { dd.classList.add('open'); trigger.classList.add('open'); }
+  if (!isOpen) {
+    dd.classList.add('open');
+    trigger.classList.add('open');
+    // Focus search input when dropdown opens
+    var srch = document.getElementById(id+'-search');
+    if (srch) { setTimeout(function(){ srch.focus(); srch.value=''; msFilterOptions(id,''); }, 50); }
+  }
+}
+
+function msFilterOptions(id, query) {
+  var q = query.toLowerCase().trim();
+  var list = document.getElementById(id+'-list');
+  if (!list) return;
+  var opts = list.querySelectorAll('.ms-option');
+  var firstVisible = null;
+  opts.forEach(function(opt) {
+    var text = opt.textContent.toLowerCase();
+    var show = !q || text.includes(q);
+    opt.style.display = show ? '' : 'none';
+    if (show && !firstVisible) firstVisible = opt;
+  });
+  // Scroll to first match
+  if (firstVisible && q) {
+    firstVisible.scrollIntoView({ block: 'nearest' });
+    // Highlight first match
+    list.querySelectorAll('.ms-option').forEach(function(o){ o.classList.remove('ms-highlight'); });
+    firstVisible.classList.add('ms-highlight');
+  }
+}
+
+function msSearchKey(e, id) {
+  if (e.key === 'Enter') {
+    // Select the highlighted option
+    var list = document.getElementById(id+'-list');
+    if (!list) return;
+    var highlighted = list.querySelector('.ms-highlight');
+    if (highlighted) highlighted.click();
+    e.preventDefault();
+  }
+  if (e.key === 'Escape') {
+    msToggle(id); // close dropdown
+  }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    var list = document.getElementById(id+'-list');
+    if (!list) return;
+    var visible = Array.from(list.querySelectorAll('.ms-option')).filter(function(o){ return o.style.display !== 'none'; });
+    var cur = list.querySelector('.ms-highlight');
+    var idx = visible.indexOf(cur);
+    visible.forEach(function(o){ o.classList.remove('ms-highlight'); });
+    if (e.key === 'ArrowDown') idx = Math.min(idx+1, visible.length-1);
+    else idx = Math.max(idx-1, 0);
+    if (visible[idx]) { visible[idx].classList.add('ms-highlight'); visible[idx].scrollIntoView({ block:'nearest' }); }
+    e.preventDefault();
+  }
 }
 
 function msSelect(id, value, label) {
@@ -5792,8 +5861,15 @@ function dsSPage(n){_dsSPg+=n;_renderDsSTbl();}
 function renderDsAll(){_dsKPIs();_dsCharts();_dsInsights();_renderDsDTbl();_renderDsSTbl();}
 
 function _dsKPIs(){
-  var off=_dsSum(_dsDEf,'Offered'),hnd=_dsSum(_dsDEf,'Handled'),tr=_dsSum(_dsDEf,'Transfers');
-  var sl=_dsAvg(_dsDEf,'Service Level'),ab=_dsAvg(_dsDEf,'Abandon Rate'),aht=_dsAvg(_dsDEf,'AHT');
+  // DEMAND KPIs: use SG-level when SG filter active
+  var sgf=msGetValues('ms-ds-d-sg')||[];
+  var useSG=sgf.length>0;
+  var off=useSG?_dsSum(_dsSGf,'Offered'):_dsSum(_dsDEf,'Offered');
+  var hnd=useSG?_dsSum(_dsSGf,'Handled'):_dsSum(_dsDEf,'Handled');
+  var tr=useSG?_dsSum(_dsSGf,'Transfers'):_dsSum(_dsDEf,'Transfers');
+  var sl=useSG?_dsAvg(_dsSGf,'Service Level'):_dsAvg(_dsDEf,'Service Level');
+  var ab=useSG?_dsAvg(_dsSGf,'Abandon Rate'):_dsAvg(_dsDEf,'Abandon Rate');
+  var aht=useSG?_dsAvg(_dsSGf,'AHT'):_dsAvg(_dsDEf,'AHT');
   var hr=off?hnd/off:0;
   var dEl=document.getElementById('ds-d-kpis');
   if(dEl)dEl.innerHTML=[
@@ -5805,50 +5881,70 @@ function _dsKPIs(){
     {l:'Total Transfers',v:_dsNum(tr),s:'transferred',i:'🔀',c:'var(--amber)'},
   ].map(function(k){return '<div class="kpi-card"><div class="kpi-icon">'+k.i+'</div><div><div class="kpi-label">'+k.l+'</div><div class="kpi-val" style="color:'+k.c+'">'+k.v+'</div><div class="kpi-sub">'+k.s+'</div></div></div>';}).join('');
 
-  var req=_dsSum(_dsSEf,'2. Baseline Adjusted Productive Required (FTE)'),sch=_dsSum(_dsSEf,'Actual Prod FTE/Hours'),net=_dsSum(_dsSEf,'Actual Net (FTE)');
-  var anp=_dsAvg(_dsSEf,'Actual Net % - (FTE)'),gaps=_dsSDf.filter(function(r){var v=_sf(r['Actual Net % - (FTE)']);return v!==null&&v>=0.01&&v<1.0;}).length;
+  // SUPPLY KPIs: always use _dsSDf (SG-level) so all filters apply
+  var req=_dsSum(_dsSDf,'2. Baseline Adjusted Productive Required (FTE)');
+  var sch=_dsSum(_dsSDf,'Actual Prod FTE/Hours');
+  var net=_dsSum(_dsSDf,'Actual Net (FTE)');
+  var anpVals=_dsSDf.map(function(r){return _sf(r['Actual Net % - (FTE)']);}).filter(function(v){return v!==null;});
+  var anp=anpVals.length?anpVals.reduce(function(a,b){return a+b;})/anpVals.length:0;
+  var gaps=_dsSDf.filter(function(r){var v=_sf(r['Actual Net % - (FTE)']);return v!==null&&v>=0.01&&v<1.0;}).length;
   var surp=_dsSDf.filter(function(r){var v=_sf(r['Actual Net % - (FTE)']);return v!==null&&v>1.5;}).length;
-  // Avg occupancy from Occupancy (FTE) field — already 0-1
   var occVals=_dsSDf.map(function(r){return _sf(r['Occupancy (FTE)']);}).filter(function(v){return v!==null&&!isNaN(v)&&typeof v==='number';});
   var avgOccKPI=occVals.length?Math.min(occVals.reduce(function(a,b){return a+b;})/occVals.length,1.0):0;
   var sEl=document.getElementById('ds-s-kpis');
   if(sEl)sEl.innerHTML=[
     {l:'Required FTE',v:req.toFixed(1),s:'baseline required',i:'📋',c:'var(--blue)'},
-    {l:'Scheduled FTE',v:sch.toFixed(1),s:'productive scheduled',i:'🗓',c:'var(--green)'},
+    {l:'Actual FTE',v:sch.toFixed(1),s:'actual productive FTE',i:'🗓',c:'var(--green)'},
     {l:'Net FTE',v:(net>=0?'+':'')+net.toFixed(1),s:'vs required',i:'⚖️',c:net>=0?'var(--green)':'var(--red)'},
     {l:'Avg Net %',v:_dsPct(anp),s:'staffing coverage',i:'📊',c:anp>=1?'var(--green)':anp>=0.8?'var(--amber)':'var(--red)'},
     {l:'Staffing Gaps',v:gaps,s:'records below 100%',i:'⚠️',c:gaps===0?'var(--green)':'var(--red)'},
-    {l:'Surplus Records',v:surp,s:'records above 150%',i:'📈',c:'var(--teal)'},
+    {l:'Avg Occupancy',v:_dsPct(avgOccKPI),s:'of capacity utilized',i:'🛡',c:avgOccKPI>=0.85?'var(--green)':avgOccKPI>=0.7?'var(--amber)':'var(--red)'},
   ].map(function(k){return '<div class="kpi-card"><div class="kpi-icon">'+k.i+'</div><div><div class="kpi-label">'+k.l+'</div><div class="kpi-val" style="color:'+k.c+'">'+k.v+'</div><div class="kpi-sub">'+k.s+'</div></div></div>';}).join('');
 }
 
 function _dsCharts(){
-  var dBD={};_dsDEf.forEach(function(r){dBD[r['Date']]=(dBD[r['Date']]||0)+(_sf(r['Offered'])||0);});
-  var dD=Object.keys(dBD).sort();
+  // Demand charts: use SG-level data if SG filter active, else eco-level
+  var sgf=msGetValues('ms-ds-d-sg')||[];
+  var useSG=sgf.length>0;
+
+  // D1: Daily volume trend
+  var dByDate={};
+  (useSG?_dsSGf:_dsDEf).forEach(function(r){
+    var d=r['Date']; dByDate[d]=(dByDate[d]||0)+(_sf(r['Offered'])||0);
+  });
+  var dD=Object.keys(dByDate).sort();
   if(_dsCh.vol)_dsCh.vol.destroy();
   var c1=document.getElementById('ds-d-vol-chart');
-  if(c1){_dsCh.vol=new Chart(c1,{type:'bar',data:{labels:dD.map(function(d){return d.slice(5);}),datasets:[{label:'Offered',data:dD.map(function(d){return dBD[d];}),backgroundColor:'rgba(59,130,246,.7)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{color:'var(--text3)',font:{size:9}}},x:{ticks:{color:'var(--text3)',font:{size:9}}}}}});}
-  var badge=document.getElementById('ds-d-vol-badge');if(badge)badge.textContent=_dsSum(_dsDEf,'Offered').toLocaleString()+' contacts · '+dD.length+' days';
+  if(c1){_dsCh.vol=new Chart(c1,{type:'bar',data:{labels:dD.map(function(d){return d.slice(5);}),datasets:[{label:'Offered',data:dD.map(function(d){return dByDate[d];}),backgroundColor:'rgba(59,130,246,.7)',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{color:'var(--text3)',font:{size:9}}},x:{ticks:{color:'var(--text3)',font:{size:9}}}}}});}
+  var badge=document.getElementById('ds-d-vol-badge');
+  if(badge)badge.textContent=_dsSum(useSG?_dsSGf:_dsDEf,'Offered').toLocaleString()+' contacts';
 
+  // D2: SL by ecosystem (always eco-level for this chart)
   var ecos=[...new Set(_dsDEf.map(function(r){return r['Customer Eco Parent'];}))].filter(Boolean).sort();
   var eSL=ecos.map(function(e){var rows=_dsDEf.filter(function(r){return r['Customer Eco Parent']===e;});return rows.length?rows.reduce(function(s,r){return s+(_sf(r['Service Level'])||0);},0)/rows.length*100:0;});
   if(_dsCh.sl)_dsCh.sl.destroy();
   var c2=document.getElementById('ds-d-sl-chart');
   if(c2){_dsCh.sl=new Chart(c2,{type:'bar',data:{labels:ecos,datasets:[{label:'SL%',data:eSL,backgroundColor:eSL.map(function(v){return v>=90?'rgba(16,185,129,.75)':v>=80?'rgba(245,158,11,.75)':'rgba(239,68,68,.75)';}),borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{min:0,max:100,ticks:{callback:function(v){return v+'%';},color:'var(--text3)',font:{size:9}}},y:{ticks:{color:'var(--text3)',font:{size:9}}}}}});}
 
-  var slBD={};_dsDEf.forEach(function(r){if(!slBD[r['Date']])slBD[r['Date']]={s:0,n:0};var v=_sf(r['Service Level']);if(v!==null){slBD[r['Date']].s+=v;slBD[r['Date']].n++;}});
+  // D3: SL trend
+  var slBD={};
+  (useSG?_dsSGf:_dsDEf).forEach(function(r){
+    var d=r['Date'];if(!slBD[d])slBD[d]={s:0,n:0};var v=_sf(r['Service Level']);if(v!==null){slBD[d].s+=v;slBD[d].n++;}
+  });
   var slD=Object.keys(slBD).sort();
   if(_dsCh.slt)_dsCh.slt.destroy();
   var c3=document.getElementById('ds-d-sltrend-chart');
   if(c3){_dsCh.slt=new Chart(c3,{type:'line',data:{labels:slD.map(function(d){return d.slice(5);}),datasets:[{label:'Avg SL%',data:slD.map(function(d){return slBD[d].n?slBD[d].s/slBD[d].n*100:null;}),borderColor:'var(--green)',backgroundColor:'rgba(16,185,129,.1)',fill:true,tension:0.3,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:70,max:100,ticks:{callback:function(v){return v+'%';},color:'var(--text3)',font:{size:9}}},x:{ticks:{color:'var(--text3)',font:{size:9}}}}}});}
 
-  var sBD={};_dsSEf.forEach(function(r){sBD[r['Day']]=(sBD[r['Day']]||0)+(_sf(r['Actual Net (FTE)'])||0);});
+  // S1: Daily Net FTE — use _dsSDf so SG+partner filters apply
+  var sBD={};
+  _dsSDf.forEach(function(r){sBD[r['Day']]=(sBD[r['Day']]||0)+(_sf(r['Actual Net (FTE)'])||0);});
   var sD=Object.keys(sBD).sort();
   if(_dsCh.net)_dsCh.net.destroy();
   var c4=document.getElementById('ds-s-net-chart');
   if(c4){_dsCh.net=new Chart(c4,{type:'bar',data:{labels:sD.map(function(d){return d.slice(5);}),datasets:[{label:'Net FTE',data:sD.map(function(d){return sBD[d];}),backgroundColor:sD.map(function(d){return sBD[d]>=0?'rgba(16,185,129,.7)':'rgba(239,68,68,.7)';}),borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{color:'var(--text3)',font:{size:9}}},x:{ticks:{color:'var(--text3)',font:{size:9}}}}}});}
-  var nb=document.getElementById('ds-s-net-badge');if(nb)nb.textContent='Net: '+(_dsSum(_dsSEf,'Net (FTE)')>=0?'+':'')+_dsSum(_dsSEf,'Net (FTE)').toFixed(0)+' FTE';
 
+  // S2: Net% by Eco — use _dsSEf (eco-level supply, filtered by eco/partner/date)
   var sEcos=[...new Set(_dsSEf.map(function(r){return r['Expert Ecosystem Parent'];}))].filter(Boolean).sort();
   var eNet=sEcos.map(function(e){var rows=_dsSEf.filter(function(r){return r['Expert Ecosystem Parent']===e;});return rows.length?rows.reduce(function(s,r){return s+(_sf(r['Actual Net % - (FTE)'])||0);},0)/rows.length*100:0;});
   if(_dsCh.eco)_dsCh.eco.destroy();
