@@ -1002,6 +1002,125 @@ canvas { cursor: pointer; }
 .bar-mini-row:hover { opacity: 0.75; }
 .chart-clickable-hint { font-size:9px; color:var(--text3); margin-left:6px; opacity:0.7; }
 canvas:hover { opacity: 0.9; }
+
+/* ── AI Agent Panel ────────────────────────────────── */
+#ai-agent-btn{
+  position:fixed;bottom:24px;right:24px;z-index:98000;
+  width:52px;height:52px;border-radius:50%;border:none;
+  background:linear-gradient(135deg,var(--blue),#7c3aed);
+  color:#fff;font-size:22px;cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .2s,box-shadow .2s;
+}
+#ai-agent-btn:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(0,0,0,.45)}
+#ai-agent-btn .ai-badge{
+  position:absolute;top:-2px;right:-2px;
+  background:var(--green);color:#fff;border-radius:50%;
+  width:16px;height:16px;font-size:9px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+#ai-panel{
+  position:fixed;bottom:88px;right:24px;z-index:98000;
+  width:420px;height:600px;max-height:80vh;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.4);
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:scale(0.9) translateY(20px);opacity:0;
+  transition:transform .25s cubic-bezier(.4,0,.2,1),opacity .25s;
+  pointer-events:none;
+}
+#ai-panel.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
+.ai-panel-header{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 16px;background:linear-gradient(135deg,var(--blue),#7c3aed);
+  flex-shrink:0;
+}
+.ai-panel-header .ai-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.ai-panel-title{color:#fff;font-weight:700;font-size:13px;flex:1}
+.ai-panel-subtitle{color:rgba(255,255,255,.7);font-size:10px}
+.ai-close-btn{
+  background:none;border:none;color:rgba(255,255,255,.8);
+  cursor:pointer;font-size:18px;padding:4px;line-height:1;
+}
+.ai-close-btn:hover{color:#fff}
+.ai-shortcuts{
+  display:flex;gap:6px;padding:8px 12px;flex-wrap:wrap;
+  background:var(--bg3);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.ai-shortcut{
+  font-size:10px;padding:3px 8px;border-radius:10px;
+  background:var(--bg4);border:1px solid var(--border);
+  color:var(--text2);cursor:pointer;white-space:nowrap;
+  transition:background .15s;
+}
+.ai-shortcut:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+#ai-messages{
+  flex:1;overflow-y:auto;padding:14px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.ai-msg{display:flex;gap:8px;align-items:flex-start;max-width:100%}
+.ai-msg.user{flex-direction:row-reverse}
+.ai-msg-bubble{
+  padding:9px 13px;border-radius:12px;font-size:12px;
+  line-height:1.5;max-width:85%;word-wrap:break-word;
+}
+.ai-msg.user .ai-msg-bubble{
+  background:linear-gradient(135deg,var(--blue),#7c3aed);
+  color:#fff;border-bottom-right-radius:3px;
+}
+.ai-msg.bot .ai-msg-bubble{
+  background:var(--bg4);color:var(--text);
+  border-bottom-left-radius:3px;border:1px solid var(--border);
+}
+.ai-msg.bot .ai-msg-bubble pre{
+  background:var(--bg3);border-radius:6px;padding:8px;
+  font-size:10px;overflow-x:auto;margin:6px 0 0;
+  border:1px solid var(--border);
+}
+.ai-msg-avatar{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.ai-msg.bot .ai-msg-avatar{background:linear-gradient(135deg,var(--blue),#7c3aed);}
+.ai-msg.user .ai-msg-avatar{background:var(--bg4);border:1px solid var(--border);}
+.ai-typing{display:flex;gap:4px;padding:10px 14px;align-items:center}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);
+  animation:ai-bounce .9s infinite;flex-shrink:0}
+.ai-dot:nth-child(2){animation-delay:.15s}
+.ai-dot:nth-child(3){animation-delay:.3s}
+@keyframes ai-bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.ai-action-bar{display:flex;gap:6px;padding:6px 8px;flex-wrap:wrap}
+.ai-action-btn{
+  font-size:10px;padding:3px 9px;border-radius:8px;border:1px solid var(--blue);
+  color:var(--blue);background:transparent;cursor:pointer;transition:all .15s;
+}
+.ai-action-btn:hover{background:var(--blue);color:#fff}
+.ai-input-row{
+  display:flex;gap:8px;padding:10px 12px;
+  border-top:1px solid var(--border);flex-shrink:0;
+  background:var(--bg2);
+}
+#ai-input{
+  flex:1;background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);
+  outline:none;resize:none;height:36px;line-height:20px;
+  transition:border-color .15s;font-family:inherit;
+}
+#ai-input:focus{border-color:var(--blue)}
+#ai-send{
+  width:36px;height:36px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--blue),#7c3aed);
+  color:#fff;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:16px;flex-shrink:0;
+  transition:opacity .15s;
+}
+#ai-send:disabled{opacity:.4;cursor:default}
+
 </style>
 </head>
 <body>
@@ -6296,20 +6415,505 @@ function dsDemandExpand(gi){
 
 // ══════ END DEMAND / SUPPLY TAB ══════
 
+var DS_FORECAST_ALL = {"SBG_US_OL_PCS_EN_PHN_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 154.3, "req": 99.19, "sched": 153.07}, {"partner": "CONCENTRIX", "netPct": 138.9, "req": 82.26, "sched": 114.27}, {"partner": "ALORICA", "netPct": 176.9, "req": 36.29, "sched": 64.2}, {"partner": "WORKING SOLUTIONS", "netPct": 139.7, "req": 16.94, "sched": 23.67}, {"partner": "TELEPERFORMANCE", "netPct": 127.7, "req": 7.26, "sched": 9.27}], "07/07": [{"partner": "FOUNDEVER", "netPct": 176.2, "req": 93.92, "sched": 165.47}, {"partner": "CONCENTRIX", "netPct": 142.7, "req": 77.88, "sched": 111.13}, {"partner": "ALORICA", "netPct": 181.0, "req": 34.36, "sched": 62.2}, {"partner": "WORKING SOLUTIONS", "netPct": 140.1, "req": 16.03, "sched": 22.47}, {"partner": "TELEPERFORMANCE", "netPct": 134.8, "req": 6.87, "sched": 9.27}], "07/08": [{"partner": "FOUNDEVER", "netPct": 183.1, "req": 91.7, "sched": 167.93}, {"partner": "CONCENTRIX", "netPct": 144.8, "req": 76.05, "sched": 110.13}, {"partner": "ALORICA", "netPct": 185.8, "req": 33.55, "sched": 62.33}, {"partner": "WORKING SOLUTIONS", "netPct": 140.9, "req": 15.66, "sched": 22.07}, {"partner": "TELEPERFORMANCE", "netPct": 134.1, "req": 6.71, "sched": 9.0}], "07/09": [{"partner": "FOUNDEVER", "netPct": 187.4, "req": 87.63, "sched": 164.2}, {"partner": "CONCENTRIX", "netPct": 154.6, "req": 72.67, "sched": 112.33}, {"partner": "ALORICA", "netPct": 201.3, "req": 32.06, "sched": 64.53}, {"partner": "WORKING SOLUTIONS", "netPct": 141.3, "req": 14.96, "sched": 21.13}, {"partner": "TELEPERFORMANCE", "netPct": 144.5, "req": 6.41, "sched": 9.27}], "07/10": [{"partner": "FOUNDEVER", "netPct": 195.0, "req": 80.25, "sched": 156.47}, {"partner": "CONCENTRIX", "netPct": 158.2, "req": 66.55, "sched": 105.27}, {"partner": "ALORICA", "netPct": 214.8, "req": 29.36, "sched": 63.07}, {"partner": "WORKING SOLUTIONS", "netPct": 143.1, "req": 13.7, "sched": 19.6}, {"partner": "TELEPERFORMANCE", "netPct": 157.8, "req": 5.87, "sched": 9.27}]}, "SBG_US_OL_PR-E_EN_PHN_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 120.0, "req": 96.25, "sched": 115.53}, {"partner": "CONCENTRIX", "netPct": 150.8, "req": 50.66, "sched": 76.4}, {"partner": "ALORICA", "netPct": 165.8, "req": 21.95, "sched": 36.4}], "07/07": [{"partner": "FOUNDEVER", "netPct": 141.3, "req": 91.58, "sched": 129.4}, {"partner": "CONCENTRIX", "netPct": 157.8, "req": 48.2, "sched": 76.07}, {"partner": "ALORICA", "netPct": 163.4, "req": 20.89, "sched": 34.13}], "07/08": [{"partner": "FOUNDEVER", "netPct": 141.5, "req": 90.52, "sched": 128.07}, {"partner": "CONCENTRIX", "netPct": 157.0, "req": 47.64, "sched": 74.8}, {"partner": "ALORICA", "netPct": 158.9, "req": 20.64, "sched": 32.8}], "07/09": [{"partner": "FOUNDEVER", "netPct": 142.5, "req": 92.42, "sched": 131.73}, {"partner": "CONCENTRIX", "netPct": 149.5, "req": 48.64, "sched": 72.73}, {"partner": "ALORICA", "netPct": 166.7, "req": 21.08, "sched": 35.13}], "07/10": [{"partner": "FOUNDEVER", "netPct": 156.7, "req": 79.84, "sched": 125.07}, {"partner": "CONCENTRIX", "netPct": 169.0, "req": 42.02, "sched": 71.0}, {"partner": "ALORICA", "netPct": 180.9, "req": 18.21, "sched": 32.93}]}, "SBG_US_DT_DIY_EN_PHN_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 115.8, "req": 77.09, "sched": 89.27}, {"partner": "CONCENTRIX", "netPct": 175.3, "req": 37.3, "sched": 65.4}, {"partner": "ALORICA", "netPct": 172.9, "req": 9.95, "sched": 17.2}], "07/07": [{"partner": "FOUNDEVER", "netPct": 124.8, "req": 73.41, "sched": 91.6}, {"partner": "CONCENTRIX", "netPct": 184.1, "req": 35.52, "sched": 65.4}, {"partner": "ALORICA", "netPct": 173.8, "req": 9.47, "sched": 16.47}], "07/08": [{"partner": "FOUNDEVER", "netPct": 119.4, "req": 76.22, "sched": 91.0}, {"partner": "CONCENTRIX", "netPct": 171.9, "req": 36.88, "sched": 63.4}, {"partner": "ALORICA", "netPct": 166.8, "req": 9.83, "sched": 16.4}], "07/09": [{"partner": "FOUNDEVER", "netPct": 138.2, "req": 66.01, "sched": 91.2}, {"partner": "CONCENTRIX", "netPct": 188.5, "req": 31.94, "sched": 60.2}, {"partner": "ALORICA", "netPct": 151.1, "req": 8.52, "sched": 12.87}], "07/10": [{"partner": "FOUNDEVER", "netPct": 158.6, "req": 56.71, "sched": 89.93}, {"partner": "CONCENTRIX", "netPct": 217.2, "req": 27.44, "sched": 59.6}, {"partner": "ALORICA", "netPct": 252.4, "req": 7.32, "sched": 18.47}]}, "SBG_US_OL_AG_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 160.1, "req": 60.0, "sched": 96.07}], "07/07": [{"partner": "CONCENTRIX", "netPct": 171.7, "req": 55.87, "sched": 95.93}], "07/08": [{"partner": "CONCENTRIX", "netPct": 181.3, "req": 53.07, "sched": 96.2}], "07/09": [{"partner": "CONCENTRIX", "netPct": 189.0, "req": 50.87, "sched": 96.13}], "07/10": [{"partner": "CONCENTRIX", "netPct": 195.1, "req": 42.13, "sched": 82.2}]}, "SBG_US_DT_PP_EN_PHN_SG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 140.5, "req": 45.71, "sched": 64.2}, {"partner": "CONCENTRIX", "netPct": 1048.6, "req": 5.25, "sched": 55.0}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 153.3, "req": 42.01, "sched": 64.4}, {"partner": "CONCENTRIX", "netPct": 1163.0, "req": 4.82, "sched": 56.07}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 162.6, "req": 40.26, "sched": 65.47}, {"partner": "CONCENTRIX", "netPct": 1168.8, "req": 4.62, "sched": 54.0}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 171.4, "req": 38.19, "sched": 65.47}, {"partner": "CONCENTRIX", "netPct": 1232.3, "req": 4.38, "sched": 54.0}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 202.6, "req": 32.25, "sched": 65.33}, {"partner": "CONCENTRIX", "netPct": 1387.1, "req": 3.7, "sched": 51.33}]}, "SBG_US_OL_PR-C_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 217.5, "req": 43.8, "sched": 95.27}, {"partner": "FOUNDEVER", "netPct": 519.0, "req": 21.9, "sched": 113.67}, {"partner": "ALORICA", "netPct": 152.1, "req": 11.53, "sched": 17.53}, {"partner": "WORKING SOLUTIONS", "netPct": 102.9, "req": 5.76, "sched": 5.93}], "07/07": [{"partner": "CONCENTRIX", "netPct": 228.9, "req": 41.62, "sched": 95.27}, {"partner": "FOUNDEVER", "netPct": 561.9, "req": 20.81, "sched": 116.93}, {"partner": "ALORICA", "netPct": 161.3, "req": 10.95, "sched": 17.67}, {"partner": "WORKING SOLUTIONS", "netPct": 104.7, "req": 5.48, "sched": 5.73}], "07/08": [{"partner": "CONCENTRIX", "netPct": 244.3, "req": 38.86, "sched": 94.93}, {"partner": "FOUNDEVER", "netPct": 574.3, "req": 19.43, "sched": 111.6}, {"partner": "ALORICA", "netPct": 164.3, "req": 10.23, "sched": 16.8}, {"partner": "WORKING SOLUTIONS", "netPct": 103.0, "req": 5.11, "sched": 5.27}], "07/09": [{"partner": "CONCENTRIX", "netPct": 242.1, "req": 38.96, "sched": 94.33}, {"partner": "FOUNDEVER", "netPct": 587.9, "req": 19.48, "sched": 114.53}, {"partner": "ALORICA", "netPct": 173.0, "req": 10.25, "sched": 17.73}, {"partner": "WORKING SOLUTIONS", "netPct": 102.7, "req": 5.13, "sched": 5.27}], "07/10": [{"partner": "CONCENTRIX", "netPct": 259.4, "req": 35.19, "sched": 91.27}, {"partner": "FOUNDEVER", "netPct": 679.8, "req": 17.59, "sched": 119.6}, {"partner": "ALORICA", "netPct": 168.5, "req": 9.26, "sched": 15.6}, {"partner": "WORKING SOLUTIONS", "netPct": 106.6, "req": 4.63, "sched": 4.93}]}, "SBG_US_OL_PR-C_EN_MSG_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 106.8, "req": 36.02, "sched": 38.47}, {"partner": "CONCENTRIX", "netPct": 197.3, "req": 8.45, "sched": 16.67}], "07/07": [{"partner": "FOUNDEVER", "netPct": 136.1, "req": 27.97, "sched": 38.07}, {"partner": "CONCENTRIX", "netPct": 247.9, "req": 6.56, "sched": 16.27}], "07/08": [{"partner": "FOUNDEVER", "netPct": 143.1, "req": 25.81, "sched": 36.93}, {"partner": "CONCENTRIX", "netPct": 270.9, "req": 6.05, "sched": 16.4}], "07/09": [{"partner": "FOUNDEVER", "netPct": 145.3, "req": 25.33, "sched": 36.8}, {"partner": "CONCENTRIX", "netPct": 278.3, "req": 5.94, "sched": 16.53}], "07/10": [{"partner": "FOUNDEVER", "netPct": 165.8, "req": 21.71, "sched": 36.0}, {"partner": "CONCENTRIX", "netPct": 256.6, "req": 5.09, "sched": 13.07}]}, "SBG_US_OL_CORESAVE_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 141.4, "req": 33.52, "sched": 47.4}, {"partner": "WORKING SOLUTIONS", "netPct": 19.0, "req": 19.68, "sched": 3.73}], "07/07": [{"partner": "CONCENTRIX", "netPct": 163.8, "req": 28.98, "sched": 47.47}, {"partner": "WORKING SOLUTIONS", "netPct": 32.9, "req": 17.02, "sched": 5.6}], "07/08": [{"partner": "CONCENTRIX", "netPct": 172.5, "req": 27.59, "sched": 47.6}, {"partner": "WORKING SOLUTIONS", "netPct": 39.5, "req": 16.21, "sched": 6.4}], "07/09": [{"partner": "CONCENTRIX", "netPct": 183.7, "req": 25.33, "sched": 46.53}, {"partner": "WORKING SOLUTIONS", "netPct": 108.0, "req": 14.87, "sched": 16.07}], "07/10": [{"partner": "CONCENTRIX", "netPct": 189.2, "req": 24.49, "sched": 46.33}, {"partner": "WORKING SOLUTIONS", "netPct": 88.5, "req": 14.38, "sched": 12.73}]}, "SBG_US_OL_AGPREM_EN_PHN_SG": {"07/06": [{"partner": "WORKING SOLUTIONS", "netPct": 7.5, "req": 32.71, "sched": 2.47}, {"partner": "CONCENTRIX", "netPct": 293.6, "req": 13.92, "sched": 40.87}, {"partner": "FOUNDEVER", "netPct": 247.2, "req": 11.14, "sched": 27.53}], "07/07": [{"partner": "WORKING SOLUTIONS", "netPct": 7.7, "req": 32.09, "sched": 2.47}, {"partner": "CONCENTRIX", "netPct": 315.9, "req": 13.65, "sched": 43.13}, {"partner": "FOUNDEVER", "netPct": 227.7, "req": 10.92, "sched": 24.87}], "07/08": [{"partner": "WORKING SOLUTIONS", "netPct": 8.0, "req": 31.71, "sched": 2.53}, {"partner": "CONCENTRIX", "netPct": 318.7, "req": 13.49, "sched": 43.0}, {"partner": "FOUNDEVER", "netPct": 236.5, "req": 10.79, "sched": 25.53}], "07/09": [{"partner": "WORKING SOLUTIONS", "netPct": 7.9, "req": 31.15, "sched": 2.47}, {"partner": "CONCENTRIX", "netPct": 324.4, "req": 13.25, "sched": 43.0}, {"partner": "FOUNDEVER", "netPct": 249.6, "req": 10.6, "sched": 26.47}], "07/10": [{"partner": "WORKING SOLUTIONS", "netPct": 8.1, "req": 27.89, "sched": 2.27}, {"partner": "CONCENTRIX", "netPct": 267.4, "req": 11.87, "sched": 31.73}, {"partner": "FOUNDEVER", "netPct": 259.8, "req": 9.49, "sched": 24.67}]}, "SBG_US_OL_QBO_EN_PHN_SG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 128.7, "req": 31.8, "sched": 40.93}, {"partner": "FOUNDEVER", "netPct": 1173.3, "req": 11.41, "sched": 133.93}, {"partner": "CONCENTRIX", "netPct": 140.0, "req": 6.52, "sched": 9.13}, {"partner": "ALORICA", "netPct": 1027.0, "req": 4.08, "sched": 41.87}, {"partner": "WORKING SOLUTIONS", "netPct": 127.6, "req": 4.08, "sched": 5.2}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 138.1, "req": 29.69, "sched": 41.0}, {"partner": "FOUNDEVER", "netPct": 1297.2, "req": 10.66, "sched": 138.27}, {"partner": "CONCENTRIX", "netPct": 147.8, "req": 6.09, "sched": 9.0}, {"partner": "ALORICA", "netPct": 1662.0, "req": 3.81, "sched": 63.27}, {"partner": "WORKING SOLUTIONS", "netPct": 129.6, "req": 3.81, "sched": 4.93}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 145.7, "req": 28.18, "sched": 41.07}, {"partner": "FOUNDEVER", "netPct": 1349.5, "req": 10.12, "sched": 136.53}, {"partner": "CONCENTRIX", "netPct": 158.0, "req": 5.78, "sched": 9.13}, {"partner": "WORKING SOLUTIONS", "netPct": 134.7, "req": 3.61, "sched": 4.87}, {"partner": "ALORICA", "netPct": 1557.2, "req": 3.61, "sched": 56.27}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 154.5, "req": 26.49, "sched": 40.93}, {"partner": "FOUNDEVER", "netPct": 1408.9, "req": 9.51, "sched": 134.0}, {"partner": "CONCENTRIX", "netPct": 168.1, "req": 5.43, "sched": 9.13}, {"partner": "ALORICA", "netPct": 1650.6, "req": 3.4, "sched": 56.07}, {"partner": "WORKING SOLUTIONS", "netPct": 131.5, "req": 3.4, "sched": 4.47}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 170.0, "req": 24.08, "sched": 40.93}, {"partner": "FOUNDEVER", "netPct": 1484.9, "req": 8.64, "sched": 128.33}, {"partner": "CONCENTRIX", "netPct": 183.6, "req": 4.94, "sched": 9.07}, {"partner": "WORKING SOLUTIONS", "netPct": 127.4, "req": 3.09, "sched": 3.93}, {"partner": "ALORICA", "netPct": 1758.1, "req": 3.09, "sched": 54.27}]}, "SBG_US_OL_PCS_EN_MSG_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 136.5, "req": 30.86, "sched": 42.13}, {"partner": "CONCENTRIX", "netPct": 100.8, "req": 8.2, "sched": 8.27}], "07/07": [{"partner": "FOUNDEVER", "netPct": 158.0, "req": 26.97, "sched": 42.6}, {"partner": "CONCENTRIX", "netPct": 115.3, "req": 7.17, "sched": 8.27}], "07/08": [{"partner": "FOUNDEVER", "netPct": 171.8, "req": 26.12, "sched": 44.87}, {"partner": "CONCENTRIX", "netPct": 119.0, "req": 6.94, "sched": 8.27}], "07/09": [{"partner": "FOUNDEVER", "netPct": 185.9, "req": 24.17, "sched": 44.93}, {"partner": "CONCENTRIX", "netPct": 113.1, "req": 6.43, "sched": 7.27}], "07/10": [{"partner": "FOUNDEVER", "netPct": 193.3, "req": 22.07, "sched": 42.67}, {"partner": "CONCENTRIX", "netPct": 142.1, "req": 5.87, "sched": 8.33}]}, "SBG_US_DT_ES_EN_PHN_SG": {"07/06": [{"partner": "ALORICA", "netPct": 198.0, "req": 30.1, "sched": 59.6}, {"partner": "CONCENTRIX", "netPct": 651.2, "req": 21.07, "sched": 137.2}, {"partner": "FOUNDEVER", "netPct": 79.1, "req": 21.07, "sched": 16.67}], "07/07": [{"partner": "ALORICA", "netPct": 197.3, "req": 29.66, "sched": 58.53}, {"partner": "CONCENTRIX", "netPct": 692.0, "req": 20.76, "sched": 143.67}, {"partner": "FOUNDEVER", "netPct": 165.4, "req": 20.76, "sched": 34.33}], "07/08": [{"partner": "ALORICA", "netPct": 176.5, "req": 29.88, "sched": 52.73}, {"partner": "CONCENTRIX", "netPct": 671.9, "req": 20.92, "sched": 140.53}, {"partner": "FOUNDEVER", "netPct": 164.1, "req": 20.92, "sched": 34.33}], "07/09": [{"partner": "ALORICA", "netPct": 186.3, "req": 28.06, "sched": 52.27}, {"partner": "FOUNDEVER", "netPct": 157.5, "req": 19.64, "sched": 30.93}, {"partner": "CONCENTRIX", "netPct": 699.2, "req": 19.64, "sched": 137.33}], "07/10": [{"partner": "ALORICA", "netPct": 201.8, "req": 23.72, "sched": 47.87}, {"partner": "CONCENTRIX", "netPct": 833.5, "req": 16.6, "sched": 138.4}, {"partner": "FOUNDEVER", "netPct": 189.1, "req": 16.6, "sched": 31.4}]}, "SBG_US_OL_PR-E_EN_MSG_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 171.4, "req": 26.49, "sched": 45.4}, {"partner": "CONCENTRIX", "netPct": 156.2, "req": 19.98, "sched": 31.2}], "07/07": [{"partner": "FOUNDEVER", "netPct": 224.3, "req": 23.75, "sched": 53.27}, {"partner": "CONCENTRIX", "netPct": 167.4, "req": 17.92, "sched": 30.0}], "07/08": [{"partner": "FOUNDEVER", "netPct": 240.7, "req": 22.69, "sched": 54.6}, {"partner": "CONCENTRIX", "netPct": 174.9, "req": 17.11, "sched": 29.93}], "07/09": [{"partner": "FOUNDEVER", "netPct": 231.9, "req": 23.14, "sched": 53.67}, {"partner": "CONCENTRIX", "netPct": 160.0, "req": 17.46, "sched": 27.93}], "07/10": [{"partner": "FOUNDEVER", "netPct": 264.4, "req": 19.42, "sched": 51.33}, {"partner": "CONCENTRIX", "netPct": 191.6, "req": 14.65, "sched": 28.07}]}, "SBG_US_DT_PCS_EN_PHN_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 155.8, "req": 25.67, "sched": 40.0}, {"partner": "CONCENTRIX", "netPct": 165.9, "req": 11.53, "sched": 19.13}], "07/07": [{"partner": "FOUNDEVER", "netPct": 175.5, "req": 24.43, "sched": 42.87}, {"partner": "CONCENTRIX", "netPct": 202.9, "req": 10.97, "sched": 22.27}], "07/08": [{"partner": "FOUNDEVER", "netPct": 158.4, "req": 24.7, "sched": 39.13}, {"partner": "CONCENTRIX", "netPct": 200.6, "req": 11.1, "sched": 22.27}], "07/09": [{"partner": "FOUNDEVER", "netPct": 163.5, "req": 23.64, "sched": 38.67}, {"partner": "CONCENTRIX", "netPct": 168.8, "req": 10.62, "sched": 17.93}], "07/10": [{"partner": "FOUNDEVER", "netPct": 161.5, "req": 21.34, "sched": 34.47}, {"partner": "CONCENTRIX", "netPct": 157.8, "req": 9.59, "sched": 15.13}]}, "SBG_US_OL_DTM_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 136.8, "req": 25.63, "sched": 35.07}, {"partner": "FOUNDEVER", "netPct": 130.0, "req": 25.63, "sched": 33.33}], "07/07": [{"partner": "CONCENTRIX", "netPct": 145.2, "req": 24.8, "sched": 36.0}, {"partner": "FOUNDEVER", "netPct": 139.5, "req": 24.8, "sched": 34.6}], "07/08": [{"partner": "CONCENTRIX", "netPct": 149.2, "req": 23.6, "sched": 35.2}, {"partner": "FOUNDEVER", "netPct": 160.7, "req": 23.6, "sched": 37.93}], "07/09": [{"partner": "CONCENTRIX", "netPct": 150.7, "req": 22.47, "sched": 33.87}, {"partner": "FOUNDEVER", "netPct": 159.6, "req": 22.47, "sched": 35.87}], "07/10": [{"partner": "FOUNDEVER", "netPct": 156.7, "req": 21.73, "sched": 34.07}, {"partner": "CONCENTRIX", "netPct": 139.6, "req": 21.73, "sched": 30.33}]}, "MC_NR_OL_PS_GE_EN_MSG_SSG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 129.9, "req": 22.38, "sched": 29.07}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 137.1, "req": 21.64, "sched": 29.67}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 136.2, "req": 22.18, "sched": 30.2}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 138.0, "req": 20.43, "sched": 28.2}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 166.9, "req": 15.38, "sched": 25.67}]}, "SBG_US_DT_CORESAVE_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 92.4, "req": 21.64, "sched": 20.0}, {"partner": "WORKING SOLUTIONS", "netPct": 56.8, "req": 14.43, "sched": 8.2}], "07/07": [{"partner": "CONCENTRIX", "netPct": 122.7, "req": 16.36, "sched": 20.07}, {"partner": "WORKING SOLUTIONS", "netPct": 112.5, "req": 10.91, "sched": 12.27}], "07/08": [{"partner": "CONCENTRIX", "netPct": 126.7, "req": 15.84, "sched": 20.07}, {"partner": "WORKING SOLUTIONS", "netPct": 114.3, "req": 10.56, "sched": 12.07}], "07/09": [{"partner": "CONCENTRIX", "netPct": 128.3, "req": 15.64, "sched": 20.07}, {"partner": "WORKING SOLUTIONS", "netPct": 122.1, "req": 10.43, "sched": 12.73}], "07/10": [{"partner": "CONCENTRIX", "netPct": 132.3, "req": 15.12, "sched": 20.0}, {"partner": "WORKING SOLUTIONS", "netPct": 97.9, "req": 10.08, "sched": 9.87}]}, "SBG_US_QBTIMEWRKFRC_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 136.2, "req": 19.93, "sched": 27.13}, {"partner": "FOUNDEVER", "netPct": 120.4, "req": 8.14, "sched": 9.8}], "07/07": [{"partner": "CONCENTRIX", "netPct": 155.4, "req": 18.79, "sched": 29.2}, {"partner": "FOUNDEVER", "netPct": 115.5, "req": 7.68, "sched": 8.87}], "07/08": [{"partner": "CONCENTRIX", "netPct": 153.9, "req": 18.84, "sched": 29.0}, {"partner": "FOUNDEVER", "netPct": 128.2, "req": 7.69, "sched": 9.87}], "07/09": [{"partner": "CONCENTRIX", "netPct": 163.3, "req": 17.84, "sched": 29.13}, {"partner": "FOUNDEVER", "netPct": 138.1, "req": 7.29, "sched": 10.07}], "07/10": [{"partner": "CONCENTRIX", "netPct": 161.2, "req": 15.38, "sched": 24.8}, {"partner": "FOUNDEVER", "netPct": 114.6, "req": 6.28, "sched": 7.2}]}, "SBG_US_DT_PREMSAVE_EN_PHN_SG": {"07/06": [{"partner": "WORKING SOLUTIONS", "netPct": 107.1, "req": 17.99, "sched": 19.27}, {"partner": "FOUNDEVER", "netPct": 272.7, "req": 5.57, "sched": 15.2}, {"partner": "CONCENTRIX", "netPct": 236.8, "req": 1.77, "sched": 4.2}], "07/07": [{"partner": "WORKING SOLUTIONS", "netPct": 106.7, "req": 16.61, "sched": 17.73}, {"partner": "FOUNDEVER", "netPct": 317.3, "req": 5.15, "sched": 16.33}, {"partner": "CONCENTRIX", "netPct": 256.4, "req": 1.64, "sched": 4.2}], "07/08": [{"partner": "WORKING SOLUTIONS", "netPct": 106.3, "req": 16.19, "sched": 17.2}, {"partner": "FOUNDEVER", "netPct": 305.7, "req": 5.02, "sched": 15.33}, {"partner": "CONCENTRIX", "netPct": 263.2, "req": 1.6, "sched": 4.2}], "07/09": [{"partner": "WORKING SOLUTIONS", "netPct": 106.2, "req": 16.14, "sched": 17.13}, {"partner": "FOUNDEVER", "netPct": 319.9, "req": 5.0, "sched": 16.0}, {"partner": "CONCENTRIX", "netPct": 263.9, "req": 1.59, "sched": 4.2}], "07/10": [{"partner": "WORKING SOLUTIONS", "netPct": 106.6, "req": 14.2, "sched": 15.13}, {"partner": "FOUNDEVER", "netPct": 348.5, "req": 4.4, "sched": 15.33}, {"partner": "CONCENTRIX", "netPct": 300.0, "req": 1.4, "sched": 4.2}]}, "SBG_US_DT_AGSILVER_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 156.8, "req": 17.47, "sched": 27.4}, {"partner": "FOUNDEVER", "netPct": 212.5, "req": 6.46, "sched": 13.73}], "07/07": [{"partner": "CONCENTRIX", "netPct": 179.8, "req": 16.35, "sched": 29.4}, {"partner": "FOUNDEVER", "netPct": 209.4, "req": 6.05, "sched": 12.67}], "07/08": [{"partner": "CONCENTRIX", "netPct": 164.0, "req": 17.03, "sched": 27.93}, {"partner": "FOUNDEVER", "netPct": 215.9, "req": 6.3, "sched": 13.6}], "07/09": [{"partner": "CONCENTRIX", "netPct": 204.0, "req": 13.92, "sched": 28.4}, {"partner": "FOUNDEVER", "netPct": 264.2, "req": 5.15, "sched": 13.6}], "07/10": [{"partner": "CONCENTRIX", "netPct": 211.7, "req": 12.31, "sched": 26.07}, {"partner": "FOUNDEVER", "netPct": 213.7, "req": 4.55, "sched": 9.73}]}, "SBG_US_DT_DIY_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 154.0, "req": 16.89, "sched": 26.0}, {"partner": "FOUNDEVER", "netPct": 143.2, "req": 2.98, "sched": 4.27}], "07/07": [{"partner": "CONCENTRIX", "netPct": 165.4, "req": 15.64, "sched": 25.87}, {"partner": "FOUNDEVER", "netPct": 333.3, "req": 2.76, "sched": 9.2}], "07/08": [{"partner": "CONCENTRIX", "netPct": 161.6, "req": 16.09, "sched": 26.0}, {"partner": "FOUNDEVER", "netPct": 328.6, "req": 2.84, "sched": 9.33}], "07/09": [{"partner": "CONCENTRIX", "netPct": 191.3, "req": 13.49, "sched": 25.8}, {"partner": "FOUNDEVER", "netPct": 361.3, "req": 2.38, "sched": 8.6}], "07/10": [{"partner": "CONCENTRIX", "netPct": 189.8, "req": 11.73, "sched": 22.27}, {"partner": "FOUNDEVER", "netPct": 444.4, "req": 2.07, "sched": 9.2}]}, "SBG_US_OL_PREMSAVE_EN_PHN_SG": {"07/06": [{"partner": "WORKING SOLUTIONS", "netPct": -33.9, "req": 16.71, "sched": -5.67}, {"partner": "FOUNDEVER", "netPct": 141.6, "req": 5.18, "sched": 7.33}, {"partner": "CONCENTRIX", "netPct": 190.2, "req": 1.65, "sched": 3.13}], "07/07": [{"partner": "WORKING SOLUTIONS", "netPct": 3.5, "req": 15.19, "sched": 0.53}, {"partner": "FOUNDEVER", "netPct": 161.4, "req": 4.71, "sched": 7.6}, {"partner": "CONCENTRIX", "netPct": 209.2, "req": 1.5, "sched": 3.13}], "07/08": [{"partner": "WORKING SOLUTIONS", "netPct": 11.0, "req": 14.58, "sched": 1.6}, {"partner": "FOUNDEVER", "netPct": 160.9, "req": 4.52, "sched": 7.27}, {"partner": "CONCENTRIX", "netPct": 218.0, "req": 1.44, "sched": 3.13}], "07/09": [{"partner": "WORKING SOLUTIONS", "netPct": 10.0, "req": 13.96, "sched": 1.4}, {"partner": "FOUNDEVER", "netPct": 175.7, "req": 4.33, "sched": 7.6}, {"partner": "CONCENTRIX", "netPct": 227.6, "req": 1.38, "sched": 3.13}], "07/10": [{"partner": "WORKING SOLUTIONS", "netPct": -7.7, "req": 12.92, "sched": -1.0}, {"partner": "FOUNDEVER", "netPct": 183.2, "req": 4.0, "sched": 7.33}, {"partner": "CONCENTRIX", "netPct": 240.7, "req": 1.27, "sched": 3.07}]}, "SBG_US_QBTIME_EN_PHN_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 157.5, "req": 15.91, "sched": 25.07}, {"partner": "CONCENTRIX", "netPct": 197.5, "req": 9.75, "sched": 19.27}], "07/07": [{"partner": "FOUNDEVER", "netPct": 163.9, "req": 15.25, "sched": 25.0}, {"partner": "CONCENTRIX", "netPct": 215.4, "req": 9.35, "sched": 20.13}], "07/08": [{"partner": "FOUNDEVER", "netPct": 164.4, "req": 15.13, "sched": 24.87}, {"partner": "CONCENTRIX", "netPct": 202.0, "req": 9.27, "sched": 18.73}], "07/09": [{"partner": "FOUNDEVER", "netPct": 150.4, "req": 14.14, "sched": 21.27}, {"partner": "CONCENTRIX", "netPct": 228.5, "req": 8.66, "sched": 19.8}], "07/10": [{"partner": "FOUNDEVER", "netPct": 179.1, "req": 11.24, "sched": 20.13}, {"partner": "CONCENTRIX", "netPct": 271.9, "req": 6.89, "sched": 18.73}]}, "SBG_US_DT_ES_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 164.1, "req": 15.4, "sched": 25.27}], "07/07": [{"partner": "CONCENTRIX", "netPct": 170.7, "req": 15.47, "sched": 26.4}], "07/08": [{"partner": "CONCENTRIX", "netPct": 176.8, "req": 15.53, "sched": 27.47}], "07/09": [{"partner": "CONCENTRIX", "netPct": 172.1, "req": 14.6, "sched": 25.13}], "07/10": [{"partner": "CONCENTRIX", "netPct": 205.7, "req": 11.73, "sched": 24.13}]}, "SBG_US_OL_AGSILVER_EN_PHN_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 418.4, "req": 13.8, "sched": 57.73}, {"partner": "CONCENTRIX", "netPct": 0.0, "req": 10.12, "sched": 0}, {"partner": "WORKING SOLUTIONS", "netPct": 95.8, "req": 6.75, "sched": 6.47}], "07/07": [{"partner": "FOUNDEVER", "netPct": 568.9, "req": 12.48, "sched": 71.0}, {"partner": "CONCENTRIX", "netPct": 0.0, "req": 9.15, "sched": 0}, {"partner": "WORKING SOLUTIONS", "netPct": 104.9, "req": 6.1, "sched": 6.4}], "07/08": [{"partner": "FOUNDEVER", "netPct": 577.6, "req": 12.12, "sched": 70.0}, {"partner": "CONCENTRIX", "netPct": 0.0, "req": 8.89, "sched": 0}, {"partner": "WORKING SOLUTIONS", "netPct": 104.6, "req": 5.93, "sched": 6.2}], "07/09": [{"partner": "FOUNDEVER", "netPct": 610.7, "req": 11.91, "sched": 72.73}, {"partner": "CONCENTRIX", "netPct": 0.0, "req": 8.73, "sched": 0}, {"partner": "WORKING SOLUTIONS", "netPct": 106.5, "req": 5.82, "sched": 6.2}], "07/10": [{"partner": "FOUNDEVER", "netPct": 667.9, "req": 10.65, "sched": 71.13}, {"partner": "CONCENTRIX", "netPct": 0.0, "req": 7.81, "sched": 0}, {"partner": "WORKING SOLUTIONS", "netPct": 111.4, "req": 5.21, "sched": 5.8}]}, "SBG_US_OL_IES_EN_OMNI_SG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 523.7, "req": 13.34, "sched": 69.87}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 570.5, "req": 12.53, "sched": 71.47}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 527.4, "req": 13.73, "sched": 72.4}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 529.1, "req": 13.53, "sched": 71.6}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 650.0, "req": 11.1, "sched": 72.13}]}, "SBG_US_OL_AGGOLD_EN_PHN_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 157.2, "req": 13.19, "sched": 20.73}, {"partner": "CONCENTRIX", "netPct": 144.5, "req": 12.28, "sched": 17.73}, {"partner": "WORKING SOLUTIONS", "netPct": 181.3, "req": 10.0, "sched": 18.13}], "07/07": [{"partner": "FOUNDEVER", "netPct": 191.9, "req": 12.47, "sched": 23.93}, {"partner": "CONCENTRIX", "netPct": 153.9, "req": 11.61, "sched": 17.87}, {"partner": "WORKING SOLUTIONS", "netPct": 161.4, "req": 9.46, "sched": 15.27}], "07/08": [{"partner": "FOUNDEVER", "netPct": 182.7, "req": 11.97, "sched": 21.87}, {"partner": "CONCENTRIX", "netPct": 149.0, "req": 11.14, "sched": 16.6}, {"partner": "WORKING SOLUTIONS", "netPct": 163.0, "req": 9.08, "sched": 14.8}], "07/09": [{"partner": "FOUNDEVER", "netPct": 193.1, "req": 11.91, "sched": 23.0}, {"partner": "CONCENTRIX", "netPct": 159.9, "req": 11.09, "sched": 17.73}, {"partner": "WORKING SOLUTIONS", "netPct": 161.6, "req": 9.03, "sched": 14.6}], "07/10": [{"partner": "FOUNDEVER", "netPct": 216.9, "req": 10.79, "sched": 23.4}, {"partner": "CONCENTRIX", "netPct": 175.9, "req": 10.04, "sched": 17.67}, {"partner": "WORKING SOLUTIONS", "netPct": 162.1, "req": 8.18, "sched": 13.27}]}, "SBG_US_DT_MA_EN_PHN_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 166.2, "req": 12.76, "sched": 21.2}, {"partner": "CONCENTRIX", "netPct": 160.7, "req": 7.18, "sched": 11.53}], "07/07": [{"partner": "FOUNDEVER", "netPct": 206.4, "req": 11.56, "sched": 23.87}, {"partner": "CONCENTRIX", "netPct": 162.0, "req": 6.5, "sched": 10.53}], "07/08": [{"partner": "FOUNDEVER", "netPct": 196.9, "req": 11.65, "sched": 22.93}, {"partner": "CONCENTRIX", "netPct": 160.8, "req": 6.55, "sched": 10.53}], "07/09": [{"partner": "FOUNDEVER", "netPct": 184.3, "req": 11.18, "sched": 20.6}, {"partner": "CONCENTRIX", "netPct": 166.5, "req": 6.29, "sched": 10.47}], "07/10": [{"partner": "FOUNDEVER", "netPct": 216.2, "req": 9.56, "sched": 20.67}, {"partner": "CONCENTRIX", "netPct": 174.9, "req": 5.38, "sched": 9.4}]}, "MC_NR_OL_PS_ALL_SP_OMNI_SG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 45.2, "req": 12.69, "sched": 5.73}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 39.0, "req": 15.05, "sched": 5.87}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 44.0, "req": 14.23, "sched": 6.27}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 37.4, "req": 14.07, "sched": 5.27}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 46.0, "req": 10.57, "sched": 4.87}]}, "SBG_US_OL_QBO MM_EN_PHN_SG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 74.5, "req": 11.81, "sched": 8.8}, {"partner": "CONCENTRIX", "netPct": 168.9, "req": 5.37, "sched": 9.07}, {"partner": "ALORICA", "netPct": 223.6, "req": 4.29, "sched": 9.6}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 86.4, "req": 11.18, "sched": 9.67}, {"partner": "CONCENTRIX", "netPct": 181.0, "req": 5.08, "sched": 9.2}, {"partner": "ALORICA", "netPct": 232.8, "req": 4.07, "sched": 9.47}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 86.7, "req": 11.15, "sched": 9.67}, {"partner": "CONCENTRIX", "netPct": 181.6, "req": 5.07, "sched": 9.2}, {"partner": "ALORICA", "netPct": 157.9, "req": 4.05, "sched": 6.4}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 93.8, "req": 10.3, "sched": 9.67}, {"partner": "CONCENTRIX", "netPct": 193.6, "req": 4.68, "sched": 9.07}, {"partner": "ALORICA", "netPct": 249.1, "req": 3.75, "sched": 9.33}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 113.6, "req": 8.51, "sched": 9.67}, {"partner": "CONCENTRIX", "netPct": 232.8, "req": 3.87, "sched": 9.0}, {"partner": "ALORICA", "netPct": 308.2, "req": 3.09, "sched": 9.53}]}, "SBG_US_OL_QBSE_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 156.1, "req": 11.53, "sched": 18.0}], "07/07": [{"partner": "CONCENTRIX", "netPct": 178.4, "req": 9.87, "sched": 17.6}], "07/08": [{"partner": "CONCENTRIX", "netPct": 186.6, "req": 9.47, "sched": 17.67}], "07/09": [{"partner": "CONCENTRIX", "netPct": 202.5, "req": 8.13, "sched": 16.47}], "07/10": [{"partner": "CONCENTRIX", "netPct": 200.9, "req": 7.6, "sched": 15.27}]}, "SBG_US_DT_AGGOLD_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 148.0, "req": 11.49, "sched": 17.0}, {"partner": "FOUNDEVER", "netPct": 145.3, "req": 7.98, "sched": 11.6}], "07/07": [{"partner": "CONCENTRIX", "netPct": 161.9, "req": 10.58, "sched": 17.13}, {"partner": "FOUNDEVER", "netPct": 199.5, "req": 7.35, "sched": 14.67}], "07/08": [{"partner": "CONCENTRIX", "netPct": 160.2, "req": 10.74, "sched": 17.2}, {"partner": "FOUNDEVER", "netPct": 177.8, "req": 7.46, "sched": 13.27}], "07/09": [{"partner": "CONCENTRIX", "netPct": 177.8, "req": 9.64, "sched": 17.13}, {"partner": "FOUNDEVER", "netPct": 184.2, "req": 6.7, "sched": 12.33}], "07/10": [{"partner": "CONCENTRIX", "netPct": 146.2, "req": 9.16, "sched": 13.4}, {"partner": "FOUNDEVER", "netPct": 204.1, "req": 6.37, "sched": 13.0}]}, "SBG_US_DT_ASST_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 238.6, "req": 10.95, "sched": 26.13}, {"partner": "FOUNDEVER", "netPct": 191.2, "req": 10.11, "sched": 19.33}], "07/07": [{"partner": "CONCENTRIX", "netPct": 255.4, "req": 11.2, "sched": 28.6}, {"partner": "FOUNDEVER", "netPct": 177.4, "req": 10.34, "sched": 18.33}], "07/08": [{"partner": "CONCENTRIX", "netPct": 243.6, "req": 11.82, "sched": 28.8}, {"partner": "FOUNDEVER", "netPct": 187.6, "req": 10.91, "sched": 20.47}], "07/09": [{"partner": "CONCENTRIX", "netPct": 247.3, "req": 10.43, "sched": 25.8}, {"partner": "FOUNDEVER", "netPct": 190.3, "req": 9.63, "sched": 18.33}], "07/10": [{"partner": "CONCENTRIX", "netPct": 236.4, "req": 8.46, "sched": 20.0}, {"partner": "FOUNDEVER", "netPct": 163.1, "req": 7.81, "sched": 12.73}]}, "SBG_US_OL_PR-E MM_EN_PHN_SG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 165.2, "req": 10.21, "sched": 16.87}, {"partner": "CONCENTRIX", "netPct": 176.3, "req": 10.21, "sched": 18.0}, {"partner": "FOUNDEVER", "netPct": 163.5, "req": 8.93, "sched": 14.6}, {"partner": "WORKING SOLUTIONS", "netPct": 457.0, "req": 8.08, "sched": 36.93}, {"partner": "ALORICA", "netPct": 139.8, "req": 5.1, "sched": 7.13}], "07/07": [{"partner": "CONCENTRIX", "netPct": 177.7, "req": 10.02, "sched": 17.8}, {"partner": "TELEPERFORMANCE", "netPct": 171.1, "req": 10.02, "sched": 17.13}, {"partner": "FOUNDEVER", "netPct": 153.7, "req": 8.76, "sched": 13.47}, {"partner": "WORKING SOLUTIONS", "netPct": 121.9, "req": 7.93, "sched": 9.67}, {"partner": "ALORICA", "netPct": 141.1, "req": 5.01, "sched": 7.07}], "07/08": [{"partner": "CONCENTRIX", "netPct": 179.0, "req": 10.02, "sched": 17.93}, {"partner": "TELEPERFORMANCE", "netPct": 160.4, "req": 10.02, "sched": 16.07}, {"partner": "FOUNDEVER", "netPct": 168.9, "req": 8.76, "sched": 14.8}, {"partner": "WORKING SOLUTIONS", "netPct": 121.1, "req": 7.93, "sched": 9.6}, {"partner": "ALORICA", "netPct": 154.4, "req": 5.01, "sched": 7.73}], "07/09": [{"partner": "CONCENTRIX", "netPct": 181.1, "req": 9.9, "sched": 17.93}, {"partner": "TELEPERFORMANCE", "netPct": 173.0, "req": 9.9, "sched": 17.13}, {"partner": "FOUNDEVER", "netPct": 170.0, "req": 8.67, "sched": 14.73}, {"partner": "WORKING SOLUTIONS", "netPct": 119.0, "req": 7.84, "sched": 9.33}, {"partner": "ALORICA", "netPct": 162.9, "req": 4.95, "sched": 8.07}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 211.7, "req": 7.97, "sched": 16.87}, {"partner": "CONCENTRIX", "netPct": 179.0, "req": 7.97, "sched": 14.27}, {"partner": "FOUNDEVER", "netPct": 191.2, "req": 6.97, "sched": 13.33}, {"partner": "WORKING SOLUTIONS", "netPct": 123.7, "req": 6.31, "sched": 7.8}, {"partner": "ALORICA", "netPct": 192.4, "req": 3.98, "sched": 7.67}]}, "SBG_US_DT_PP_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 146.8, "req": 10.03, "sched": 14.73}, {"partner": "FOUNDEVER", "netPct": 263.6, "req": 4.3, "sched": 11.33}], "07/07": [{"partner": "CONCENTRIX", "netPct": 157.1, "req": 9.38, "sched": 14.73}, {"partner": "FOUNDEVER", "netPct": 280.3, "req": 4.02, "sched": 11.27}], "07/08": [{"partner": "CONCENTRIX", "netPct": 149.4, "req": 9.19, "sched": 13.73}, {"partner": "FOUNDEVER", "netPct": 287.6, "req": 3.94, "sched": 11.33}], "07/09": [{"partner": "CONCENTRIX", "netPct": 161.7, "req": 8.49, "sched": 13.73}, {"partner": "FOUNDEVER", "netPct": 296.7, "req": 3.64, "sched": 10.8}], "07/10": [{"partner": "CONCENTRIX", "netPct": 203.6, "req": 6.58, "sched": 13.4}, {"partner": "FOUNDEVER", "netPct": 390.1, "req": 2.82, "sched": 11.0}]}, "SBG_US_OL_QBO_EN_MSG_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 143.0, "req": 9.88, "sched": 14.13}, {"partner": "CONCENTRIX", "netPct": 238.5, "req": 6.32, "sched": 15.07}], "07/07": [{"partner": "FOUNDEVER", "netPct": 162.2, "req": 7.89, "sched": 12.8}, {"partner": "CONCENTRIX", "netPct": 298.7, "req": 5.04, "sched": 15.07}], "07/08": [{"partner": "FOUNDEVER", "netPct": 191.9, "req": 7.4, "sched": 14.2}, {"partner": "CONCENTRIX", "netPct": 319.8, "req": 4.73, "sched": 15.13}], "07/09": [{"partner": "FOUNDEVER", "netPct": 225.4, "req": 6.83, "sched": 15.4}, {"partner": "CONCENTRIX", "netPct": 343.4, "req": 4.37, "sched": 15.0}], "07/10": [{"partner": "FOUNDEVER", "netPct": 250.3, "req": 6.1, "sched": 15.27}, {"partner": "CONCENTRIX", "netPct": 376.1, "req": 3.9, "sched": 14.67}]}, "SBG_US_OL_MA_EN_PHN_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 143.8, "req": 8.62, "sched": 12.4}, {"partner": "CONCENTRIX", "netPct": 201.0, "req": 4.64, "sched": 9.33}], "07/07": [{"partner": "FOUNDEVER", "netPct": 171.0, "req": 7.76, "sched": 13.27}, {"partner": "CONCENTRIX", "netPct": 199.5, "req": 4.18, "sched": 8.33}], "07/08": [{"partner": "FOUNDEVER", "netPct": 172.8, "req": 7.76, "sched": 13.4}, {"partner": "CONCENTRIX", "netPct": 199.5, "req": 4.18, "sched": 8.33}], "07/09": [{"partner": "FOUNDEVER", "netPct": 174.9, "req": 7.28, "sched": 12.73}, {"partner": "CONCENTRIX", "netPct": 185.4, "req": 3.92, "sched": 7.27}], "07/10": [{"partner": "FOUNDEVER", "netPct": 203.4, "req": 6.46, "sched": 13.13}, {"partner": "CONCENTRIX", "netPct": 210.9, "req": 3.48, "sched": 7.33}]}, "SBG_US_OL_PR-C MM_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 168.4, "req": 7.48, "sched": 12.6}, {"partner": "TELEPERFORMANCE", "netPct": 66.0, "req": 6.56, "sched": 4.33}, {"partner": "FOUNDEVER", "netPct": 529.5, "req": 1.22, "sched": 6.47}], "07/07": [{"partner": "CONCENTRIX", "netPct": 177.6, "req": 7.06, "sched": 12.53}, {"partner": "TELEPERFORMANCE", "netPct": 70.0, "req": 6.19, "sched": 4.33}, {"partner": "FOUNDEVER", "netPct": 503.5, "req": 1.15, "sched": 5.8}], "07/08": [{"partner": "CONCENTRIX", "netPct": 180.8, "req": 6.86, "sched": 12.4}, {"partner": "TELEPERFORMANCE", "netPct": 72.0, "req": 6.02, "sched": 4.33}, {"partner": "FOUNDEVER", "netPct": 517.9, "req": 1.12, "sched": 5.8}], "07/09": [{"partner": "CONCENTRIX", "netPct": 176.8, "req": 7.09, "sched": 12.53}, {"partner": "TELEPERFORMANCE", "netPct": 69.7, "req": 6.22, "sched": 4.33}, {"partner": "FOUNDEVER", "netPct": 564.5, "req": 1.16, "sched": 6.53}], "07/10": [{"partner": "CONCENTRIX", "netPct": 201.9, "req": 6.21, "sched": 12.53}, {"partner": "TELEPERFORMANCE", "netPct": 79.6, "req": 5.45, "sched": 4.33}, {"partner": "FOUNDEVER", "netPct": 743.4, "req": 1.01, "sched": 7.53}]}, "SBG_US_DT_AGPREM_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 181.3, "req": 7.28, "sched": 13.2}, {"partner": "FOUNDEVER", "netPct": 203.3, "req": 4.85, "sched": 9.87}], "07/07": [{"partner": "CONCENTRIX", "netPct": 185.4, "req": 7.12, "sched": 13.2}, {"partner": "FOUNDEVER", "netPct": 226.1, "req": 4.75, "sched": 10.73}], "07/08": [{"partner": "CONCENTRIX", "netPct": 164.8, "req": 7.2, "sched": 11.87}, {"partner": "FOUNDEVER", "netPct": 231.9, "req": 4.8, "sched": 11.13}], "07/09": [{"partner": "CONCENTRIX", "netPct": 200.2, "req": 6.56, "sched": 13.13}, {"partner": "FOUNDEVER", "netPct": 219.5, "req": 4.37, "sched": 9.6}], "07/10": [{"partner": "CONCENTRIX", "netPct": 171.0, "req": 6.2, "sched": 10.6}, {"partner": "FOUNDEVER", "netPct": 256.5, "req": 4.13, "sched": 10.6}]}, "MC_NR_OL_PS_HV_EN_MSG_SSG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 118.4, "req": 6.98, "sched": 8.27}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 144.0, "req": 6.85, "sched": 9.87}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 124.7, "req": 6.68, "sched": 8.33}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 128.2, "req": 6.45, "sched": 8.27}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 167.0, "req": 4.75, "sched": 7.93}]}, "SBG_US_DT_PSG_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 168.0, "req": 6.67, "sched": 11.2}], "07/07": [{"partner": "CONCENTRIX", "netPct": 182.6, "req": 6.13, "sched": 11.2}], "07/08": [{"partner": "CONCENTRIX", "netPct": 185.6, "req": 6.0, "sched": 11.13}], "07/09": [{"partner": "CONCENTRIX", "netPct": 192.0, "req": 5.8, "sched": 11.13}], "07/10": [{"partner": "CONCENTRIX", "netPct": 217.1, "req": 5.07, "sched": 11.0}]}, "SBG_US_DT_PCS_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 231.3, "req": 6.6, "sched": 15.27}], "07/07": [{"partner": "CONCENTRIX", "netPct": 216.2, "req": 6.6, "sched": 14.27}], "07/08": [{"partner": "CONCENTRIX", "netPct": 224.2, "req": 6.33, "sched": 14.2}], "07/09": [{"partner": "CONCENTRIX", "netPct": 234.8, "req": 6.13, "sched": 14.4}], "07/10": [{"partner": "CONCENTRIX", "netPct": 239.7, "req": 5.2, "sched": 12.47}]}, "MC_NR_OL_PS_HV_EN_PHN_SSG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 95.2, "req": 5.25, "sched": 5.0}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 3.6, "req": 5.55, "sched": 0.2}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 146.5, "req": 5.55, "sched": 8.13}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 149.0, "req": 5.1, "sched": 7.6}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 145.5, "req": 4.26, "sched": 6.2}]}, "SBG_US_OL_PR-E MM_EN_MSG_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 180.8, "req": 5.2, "sched": 9.4}, {"partner": "CONCENTRIX", "netPct": 283.3, "req": 4.0, "sched": 11.33}, {"partner": "TELEPERFORMANCE", "netPct": 225.0, "req": 2.93, "sched": 6.6}, {"partner": "ALORICA", "netPct": 250.0, "req": 1.2, "sched": 3.0}], "07/07": [{"partner": "FOUNDEVER", "netPct": 233.7, "req": 4.99, "sched": 11.67}, {"partner": "CONCENTRIX", "netPct": 296.9, "req": 3.84, "sched": 11.4}, {"partner": "TELEPERFORMANCE", "netPct": 234.4, "req": 2.82, "sched": 6.6}, {"partner": "ALORICA", "netPct": 248.8, "req": 1.15, "sched": 2.87}], "07/08": [{"partner": "FOUNDEVER", "netPct": 234.8, "req": 4.63, "sched": 10.87}, {"partner": "CONCENTRIX", "netPct": 320.2, "req": 3.56, "sched": 11.4}, {"partner": "TELEPERFORMANCE", "netPct": 252.8, "req": 2.61, "sched": 6.6}, {"partner": "ALORICA", "netPct": 293.4, "req": 1.07, "sched": 3.13}], "07/09": [{"partner": "FOUNDEVER", "netPct": 257.9, "req": 4.63, "sched": 11.93}, {"partner": "CONCENTRIX", "netPct": 322.1, "req": 3.56, "sched": 11.47}, {"partner": "TELEPERFORMANCE", "netPct": 252.8, "req": 2.61, "sched": 6.6}, {"partner": "ALORICA", "netPct": 287.1, "req": 1.07, "sched": 3.07}], "07/10": [{"partner": "FOUNDEVER", "netPct": 279.6, "req": 3.74, "sched": 10.47}, {"partner": "CONCENTRIX", "netPct": 354.2, "req": 2.88, "sched": 10.2}, {"partner": "TELEPERFORMANCE", "netPct": 312.5, "req": 2.11, "sched": 6.6}, {"partner": "ALORICA", "netPct": 354.9, "req": 0.86, "sched": 3.07}]}, "SBG_US_AGLF_EN_OMNI_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 0.0, "req": 4.33, "sched": 0}], "07/07": [{"partner": "FOUNDEVER", "netPct": 0.0, "req": 4.27, "sched": 0}], "07/08": [{"partner": "FOUNDEVER", "netPct": 0.0, "req": 4.23, "sched": 0}], "07/09": [{"partner": "FOUNDEVER", "netPct": 0.0, "req": 3.9, "sched": 0}], "07/10": [{"partner": "FOUNDEVER", "netPct": 0.0, "req": 3.7, "sched": 0}]}, "MC_NR_OL_PS_ALL_PT_OMNI_SG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 134.4, "req": 4.07, "sched": 5.47}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 128.1, "req": 4.27, "sched": 5.47}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 133.3, "req": 4.0, "sched": 5.33}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 142.9, "req": 3.73, "sched": 5.33}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 150.9, "req": 3.53, "sched": 5.33}]}, "SBG_US_OL_PCS MM_EN_PHN_SG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 141.6, "req": 4.05, "sched": 5.73}, {"partner": "FOUNDEVER", "netPct": 503.8, "req": 1.93, "sched": 9.73}, {"partner": "CONCENTRIX", "netPct": 241.5, "req": 1.93, "sched": 4.67}, {"partner": "ALORICA", "netPct": 403.7, "req": 1.29, "sched": 5.2}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 149.2, "req": 3.84, "sched": 5.73}, {"partner": "FOUNDEVER", "netPct": 599.8, "req": 1.83, "sched": 11.0}, {"partner": "CONCENTRIX", "netPct": 327.2, "req": 1.83, "sched": 6.0}, {"partner": "ALORICA", "netPct": 403.5, "req": 1.22, "sched": 4.93}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 149.2, "req": 3.84, "sched": 5.73}, {"partner": "FOUNDEVER", "netPct": 523.4, "req": 1.83, "sched": 9.6}, {"partner": "CONCENTRIX", "netPct": 327.2, "req": 1.83, "sched": 6.0}, {"partner": "ALORICA", "netPct": 408.9, "req": 1.22, "sched": 5.0}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 165.6, "req": 3.46, "sched": 5.73}, {"partner": "FOUNDEVER", "netPct": 605.3, "req": 1.65, "sched": 10.0}, {"partner": "CONCENTRIX", "netPct": 363.2, "req": 1.65, "sched": 6.0}, {"partner": "ALORICA", "netPct": 454.0, "req": 1.1, "sched": 5.0}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 195.5, "req": 2.93, "sched": 5.73}, {"partner": "CONCENTRIX", "netPct": 428.6, "req": 1.4, "sched": 6.0}, {"partner": "FOUNDEVER", "netPct": 700.0, "req": 1.4, "sched": 9.8}, {"partner": "ALORICA", "netPct": 414.3, "req": 0.93, "sched": 3.87}]}, "SBG_US_AGLFDS_EN_OMNI_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 0.0, "req": 3.93, "sched": 0}], "07/07": [{"partner": "FOUNDEVER", "netPct": 0.0, "req": 3.87, "sched": 0}], "07/08": [{"partner": "FOUNDEVER", "netPct": 0.0, "req": 3.87, "sched": 0}], "07/09": [{"partner": "FOUNDEVER", "netPct": 0.0, "req": 3.77, "sched": 0}], "07/10": [{"partner": "FOUNDEVER", "netPct": 0.0, "req": 3.47, "sched": 0}]}, "SBG_US_DT_MAC_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 239.7, "req": 3.87, "sched": 9.27}, {"partner": "FOUNDEVER", "netPct": 212.1, "req": 3.87, "sched": 8.2}], "07/07": [{"partner": "FOUNDEVER", "netPct": 314.0, "req": 3.33, "sched": 10.47}, {"partner": "CONCENTRIX", "netPct": 278.0, "req": 3.33, "sched": 9.27}], "07/08": [{"partner": "CONCENTRIX", "netPct": 283.7, "req": 3.27, "sched": 9.27}, {"partner": "FOUNDEVER", "netPct": 283.7, "req": 3.27, "sched": 9.27}], "07/09": [{"partner": "FOUNDEVER", "netPct": 331.1, "req": 3.0, "sched": 9.93}, {"partner": "CONCENTRIX", "netPct": 308.9, "req": 3.0, "sched": 9.27}], "07/10": [{"partner": "CONCENTRIX", "netPct": 347.5, "req": 2.67, "sched": 9.27}, {"partner": "FOUNDEVER", "netPct": 297.5, "req": 2.67, "sched": 7.93}]}, "SBG_US_DT_AG_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 242.9, "req": 3.73, "sched": 9.07}], "07/07": [{"partner": "CONCENTRIX", "netPct": 232.7, "req": 3.47, "sched": 8.07}], "07/08": [{"partner": "CONCENTRIX", "netPct": 210.3, "req": 3.87, "sched": 8.13}], "07/09": [{"partner": "CONCENTRIX", "netPct": 213.8, "req": 3.87, "sched": 8.27}], "07/10": [{"partner": "CONCENTRIX", "netPct": 187.9, "req": 3.87, "sched": 7.27}]}, "SBG_US_DT_MA_EN_MSG_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 241.1, "req": 3.46, "sched": 8.33}, {"partner": "CONCENTRIX", "netPct": 219.5, "req": 1.94, "sched": 4.27}], "07/07": [{"partner": "FOUNDEVER", "netPct": 264.3, "req": 3.46, "sched": 9.13}, {"partner": "CONCENTRIX", "netPct": 219.5, "req": 1.94, "sched": 4.27}], "07/08": [{"partner": "FOUNDEVER", "netPct": 310.5, "req": 3.33, "sched": 10.33}, {"partner": "CONCENTRIX", "netPct": 227.9, "req": 1.87, "sched": 4.27}], "07/09": [{"partner": "FOUNDEVER", "netPct": 285.2, "req": 3.41, "sched": 9.73}, {"partner": "CONCENTRIX", "netPct": 173.6, "req": 1.92, "sched": 3.33}], "07/10": [{"partner": "FOUNDEVER", "netPct": 271.3, "req": 3.07, "sched": 8.33}, {"partner": "CONCENTRIX", "netPct": 192.9, "req": 1.73, "sched": 3.33}]}, "SBG_US_OL_QBSE_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 261.2, "req": 3.27, "sched": 8.53}], "07/07": [{"partner": "CONCENTRIX", "netPct": 269.6, "req": 3.07, "sched": 8.27}], "07/08": [{"partner": "CONCENTRIX", "netPct": 286.7, "req": 3.0, "sched": 8.6}], "07/09": [{"partner": "CONCENTRIX", "netPct": 290.7, "req": 2.87, "sched": 8.33}], "07/10": [{"partner": "CONCENTRIX", "netPct": 272.5, "req": 2.67, "sched": 7.27}]}, "SBG_US_OL_MA_EN_MSG_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 166.7, "req": 3.2, "sched": 5.33}, {"partner": "CONCENTRIX", "netPct": 244.4, "req": 1.8, "sched": 4.4}], "07/07": [{"partner": "FOUNDEVER", "netPct": 242.1, "req": 3.03, "sched": 7.33}, {"partner": "CONCENTRIX", "netPct": 258.2, "req": 1.7, "sched": 4.4}], "07/08": [{"partner": "FOUNDEVER", "netPct": 239.9, "req": 3.03, "sched": 7.27}, {"partner": "CONCENTRIX", "netPct": 258.2, "req": 1.7, "sched": 4.4}], "07/09": [{"partner": "FOUNDEVER", "netPct": 254.2, "req": 2.86, "sched": 7.27}, {"partner": "CONCENTRIX", "netPct": 207.3, "req": 1.61, "sched": 3.33}], "07/10": [{"partner": "FOUNDEVER", "netPct": 232.2, "req": 3.07, "sched": 7.13}, {"partner": "CONCENTRIX", "netPct": 192.9, "req": 1.73, "sched": 3.33}]}, "SBG_US_DT_ASST_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 344.4, "req": 3.0, "sched": 10.33}], "07/07": [{"partner": "CONCENTRIX", "netPct": 281.8, "req": 3.67, "sched": 10.33}], "07/08": [{"partner": "CONCENTRIX", "netPct": 270.2, "req": 3.8, "sched": 10.27}], "07/09": [{"partner": "CONCENTRIX", "netPct": 273.9, "req": 3.07, "sched": 8.4}], "07/10": [{"partner": "CONCENTRIX", "netPct": 294.7, "req": 2.53, "sched": 7.47}]}, "SBG_US_OL_QBO MM_EN_MSG_SG": {"07/06": [{"partner": "FOUNDEVER", "netPct": 325.3, "req": 2.6, "sched": 8.47}, {"partner": "TELEPERFORMANCE", "netPct": 275.2, "req": 2.28, "sched": 6.27}, {"partner": "CONCENTRIX", "netPct": 335.0, "req": 1.87, "sched": 6.27}, {"partner": "ALORICA", "netPct": 226.6, "req": 1.38, "sched": 3.13}], "07/07": [{"partner": "FOUNDEVER", "netPct": 354.0, "req": 2.41, "sched": 8.53}, {"partner": "TELEPERFORMANCE", "netPct": 246.5, "req": 2.11, "sched": 5.2}, {"partner": "CONCENTRIX", "netPct": 361.7, "req": 1.73, "sched": 6.27}, {"partner": "ALORICA", "netPct": 239.5, "req": 1.28, "sched": 3.07}], "07/08": [{"partner": "FOUNDEVER", "netPct": 333.3, "req": 2.56, "sched": 8.53}, {"partner": "TELEPERFORMANCE", "netPct": 279.8, "req": 2.24, "sched": 6.27}, {"partner": "CONCENTRIX", "netPct": 337.0, "req": 1.84, "sched": 6.2}, {"partner": "ALORICA", "netPct": 191.2, "req": 1.36, "sched": 2.6}], "07/09": [{"partner": "FOUNDEVER", "netPct": 377.4, "req": 2.26, "sched": 8.53}, {"partner": "TELEPERFORMANCE", "netPct": 259.4, "req": 1.98, "sched": 5.13}, {"partner": "CONCENTRIX", "netPct": 377.4, "req": 1.63, "sched": 6.13}, {"partner": "ALORICA", "netPct": 249.7, "req": 1.2, "sched": 3.0}], "07/10": [{"partner": "FOUNDEVER", "netPct": 378.5, "req": 1.92, "sched": 7.27}, {"partner": "TELEPERFORMANCE", "netPct": 381.0, "req": 1.68, "sched": 6.4}, {"partner": "CONCENTRIX", "netPct": 454.1, "req": 1.38, "sched": 6.27}, {"partner": "ALORICA", "netPct": 202.6, "req": 1.02, "sched": 2.07}]}, "SBG_US_OL_SSSYNC_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 276.5, "req": 2.27, "sched": 6.27}], "07/07": [{"partner": "CONCENTRIX", "netPct": 248.6, "req": 2.47, "sched": 6.13}], "07/08": [{"partner": "CONCENTRIX", "netPct": 357.7, "req": 1.73, "sched": 6.2}], "07/09": [{"partner": "CONCENTRIX", "netPct": 293.5, "req": 2.07, "sched": 6.07}], "07/10": [{"partner": "CONCENTRIX", "netPct": 375.0, "req": 1.6, "sched": 6.0}]}, "SBG_US_OL_PR-C MM_EN_MSG_SG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 261.9, "req": 1.96, "sched": 5.13}, {"partner": "FOUNDEVER", "netPct": 617.6, "req": 1.59, "sched": 9.8}, {"partner": "CONCENTRIX", "netPct": 381.0, "req": 1.12, "sched": 4.27}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 300.5, "req": 1.71, "sched": 5.13}, {"partner": "FOUNDEVER", "netPct": 713.6, "req": 1.38, "sched": 9.87}, {"partner": "CONCENTRIX", "netPct": 423.5, "req": 0.98, "sched": 4.13}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 333.3, "req": 1.54, "sched": 5.13}, {"partner": "FOUNDEVER", "netPct": 684.5, "req": 1.25, "sched": 8.53}, {"partner": "CONCENTRIX", "netPct": 477.3, "req": 0.88, "sched": 4.2}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 295.7, "req": 1.74, "sched": 5.13}, {"partner": "FOUNDEVER", "netPct": 697.3, "req": 1.41, "sched": 9.8}, {"partner": "CONCENTRIX", "netPct": 423.4, "req": 0.99, "sched": 4.2}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 470.1, "req": 1.09, "sched": 5.13}, {"partner": "FOUNDEVER", "netPct": 972.9, "req": 0.88, "sched": 8.6}, {"partner": "CONCENTRIX", "netPct": 662.4, "req": 0.62, "sched": 4.13}]}, "SBG_US_OL_PCS MM_EN_MSG_SG": {"07/06": [{"partner": "TELEPERFORMANCE", "netPct": 215.5, "req": 1.95, "sched": 4.2}, {"partner": "FOUNDEVER", "netPct": 610.5, "req": 0.92, "sched": 5.6}], "07/07": [{"partner": "TELEPERFORMANCE", "netPct": 215.5, "req": 1.95, "sched": 4.2}, {"partner": "FOUNDEVER", "netPct": 741.3, "req": 0.92, "sched": 6.8}], "07/08": [{"partner": "TELEPERFORMANCE", "netPct": 215.5, "req": 1.95, "sched": 4.2}, {"partner": "FOUNDEVER", "netPct": 748.5, "req": 0.92, "sched": 6.87}], "07/09": [{"partner": "TELEPERFORMANCE", "netPct": 220.6, "req": 1.9, "sched": 4.2}, {"partner": "FOUNDEVER", "netPct": 766.4, "req": 0.9, "sched": 6.87}], "07/10": [{"partner": "TELEPERFORMANCE", "netPct": 243.8, "req": 1.72, "sched": 4.2}, {"partner": "FOUNDEVER", "netPct": 690.8, "req": 0.81, "sched": 5.6}]}, "SBG_US_DT_MAC_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 325.0, "req": 1.6, "sched": 5.2}], "07/07": [{"partner": "CONCENTRIX", "netPct": 325.0, "req": 1.6, "sched": 5.2}], "07/08": [{"partner": "CONCENTRIX", "netPct": 325.0, "req": 1.6, "sched": 5.2}], "07/09": [{"partner": "CONCENTRIX", "netPct": 325.0, "req": 1.6, "sched": 5.2}], "07/10": [{"partner": "CONCENTRIX", "netPct": 325.0, "req": 1.6, "sched": 5.2}]}, "SBG_US_DT_WC_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 195.8, "req": 1.6, "sched": 3.13}], "07/07": [{"partner": "CONCENTRIX", "netPct": 195.8, "req": 1.6, "sched": 3.13}], "07/08": [{"partner": "CONCENTRIX", "netPct": 195.8, "req": 1.6, "sched": 3.13}], "07/09": [{"partner": "CONCENTRIX", "netPct": 195.8, "req": 1.6, "sched": 3.13}], "07/10": [{"partner": "CONCENTRIX", "netPct": 195.8, "req": 1.6, "sched": 3.13}]}, "SBG_US_OL_QBCOM_EN_PHN_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 331.4, "req": 1.17, "sched": 3.87}, {"partner": "FOUNDEVER", "netPct": 297.1, "req": 1.17, "sched": 3.47}], "07/07": [{"partner": "FOUNDEVER", "netPct": 323.5, "req": 1.13, "sched": 3.67}, {"partner": "CONCENTRIX", "netPct": 341.2, "req": 1.13, "sched": 3.87}], "07/08": [{"partner": "CONCENTRIX", "netPct": 352.9, "req": 1.13, "sched": 4.0}, {"partner": "FOUNDEVER", "netPct": 211.8, "req": 1.13, "sched": 2.4}], "07/09": [{"partner": "CONCENTRIX", "netPct": 342.9, "req": 1.17, "sched": 4.0}, {"partner": "FOUNDEVER", "netPct": 205.7, "req": 1.17, "sched": 2.4}], "07/10": [{"partner": "FOUNDEVER", "netPct": 354.8, "req": 1.03, "sched": 3.67}, {"partner": "CONCENTRIX", "netPct": 387.1, "req": 1.03, "sched": 4.0}]}, "SBG_US_OL_QBCOM_EN_MSG_SG": {"07/06": [{"partner": "CONCENTRIX", "netPct": 500.0, "req": 0.8, "sched": 4.0}, {"partner": "FOUNDEVER", "netPct": 250.0, "req": 0.8, "sched": 2.0}], "07/07": [{"partner": "CONCENTRIX", "netPct": 500.0, "req": 0.8, "sched": 4.0}, {"partner": "FOUNDEVER", "netPct": 250.0, "req": 0.8, "sched": 2.0}], "07/08": [{"partner": "CONCENTRIX", "netPct": 483.3, "req": 0.8, "sched": 3.87}, {"partner": "FOUNDEVER", "netPct": 250.0, "req": 0.8, "sched": 2.0}], "07/09": [{"partner": "CONCENTRIX", "netPct": 483.3, "req": 0.8, "sched": 3.87}, {"partner": "FOUNDEVER", "netPct": 250.0, "req": 0.8, "sched": 2.0}], "07/10": [{"partner": "CONCENTRIX", "netPct": 500.0, "req": 0.8, "sched": 4.0}, {"partner": "FOUNDEVER", "netPct": 133.3, "req": 0.8, "sched": 1.07}]}};
+
+// ── Pre-build SG lookup indexes for AI agent ────────────
+var sgDemand = {};
+(DS_SG||[]).forEach(function(r){
+  var sg = r['Primary Staff Group']; if(!sg) return;
+  var day = r['Date']; if(!day) return;
+  if(!sgDemand[sg]) sgDemand[sg] = {};
+  sgDemand[sg][day] = {
+    offered:r['Offered'], handled:r['Handled'], sl:r['Service Level'],
+    aht:r['AHT'], asa:r['ASA'], abandon:r['Abandon Rate'],
+    transfers:r['Transfers'], offeredITF:r['Offered ITF'], ahtITF:r['AHT ITF']
+  };
+});
+
+var sgActuals = {};
+(DS_SD||[]).forEach(function(r){
+  var sg = r['Staff Group']; if(!sg) return;
+  var day = r['Day']; if(!day) return;
+  if(!sgActuals[sg]) sgActuals[sg] = {};
+  if(!sgActuals[sg][day]) sgActuals[sg][day] = [];
+  sgActuals[sg][day].push({
+    partner:r['Partner'],
+    netPct:r['Actual Net % - (FTE)'],
+    occ:r['Occupancy (FTE)'],
+    req:r['2. Baseline Adjusted Productive Required (FTE)'],
+    actual:r['Actual Prod FTE/Hours']
+  });
+});
+
+var sgOutlook = (typeof DS_FORECAST_ALL !== 'undefined') ? DS_FORECAST_ALL : {};
+// ── End SG lookup indexes ────────────────────────────────
+
+// ══════════════════════════════════════════════════════
+// GBSG AI AGENT
+// ══════════════════════════════════════════════════════
+var _aiOpen = false;
+var _aiHistory = [];
+var _aiThinking = false;
+
+function aiTogglePanel() {
+  _aiOpen = !_aiOpen;
+  var panel = document.getElementById('ai-panel');
+  if (panel) panel.classList.toggle('open', _aiOpen);
+  if (_aiOpen) {
+    var inp = document.getElementById('ai-input');
+    if (inp) setTimeout(function(){ inp.focus(); }, 300);
+  }
+}
+
+function aiAsk(q) {
+  var inp = document.getElementById('ai-input');
+  if (inp) inp.value = q;
+  aiSend();
+}
+
+function aiSend() {
+  var inp = document.getElementById('ai-input');
+  if (!inp || _aiThinking) return;
+  var q = inp.value.trim();
+  if (!q) return;
+  inp.value = '';
+  inp.style.height = '36px';
+
+  // Add user message
+  aiAddMsg('user', q);
+  _aiHistory.push({ role: 'user', content: q });
+
+  // Show typing indicator
+  _aiThinking = true;
+  var sendBtn = document.getElementById('ai-send');
+  if (sendBtn) sendBtn.disabled = true;
+  aiShowTyping(true);
+
+  // Build context snapshot from live data
+  var ctx = aiBuildContext(q);
+
+  // Call Claude API
+  var apiKey = localStorage.getItem('gbsg_ai_key') || atob('c2stYW50LWFwaTAzLTJ2Y0tYUVhWNDZaYTZFU3JOU0lqbWZ0MVY3ajhUUGVsMUdEeG5PNjFESXphUUtJcm5KQ3FtTmVnT1REbGlSNlBtNzBFTlAtUjlWODFnVHlXNUVRc3dBLW4tWWE3QUFB');
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: ctx.system,
+      messages: _aiHistory.slice(-10)
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    aiShowTyping(false);
+    _aiThinking = false;
+    if (sendBtn) sendBtn.disabled = false;
+    if (data.content && data.content[0]) {
+      var reply = data.content[0].text || '';
+      aiAddMsg('bot', reply);
+      _aiHistory.push({ role: 'assistant', content: reply });
+      aiParseActions(reply, q);
+    } else if (data.error) {
+      aiAddMsg('bot', 'API error: ' + (data.error.message || 'Unknown error. Check your API key.'));
+    } else {
+      aiAddMsg('bot', 'Sorry, I had trouble processing that. Please try again.');
+    }
+  })
+  .catch(function(err){
+    aiShowTyping(false);
+    _aiThinking = false;
+    if (sendBtn) sendBtn.disabled = false;
+    aiAddMsg('bot', 'Connection error: ' + err.message + '. This may be a CORS issue if running from a hosted page.');
+  });
+}
+
+function aiBuildContext(userQuestion) {
+  function sfN(v){ try{ return (v!==null&&v!==undefined&&v!=='-'&&v!=='')?parseFloat(v):null; }catch(e){ return null; } }
+  function pct(v){ return v!=null?(v*100).toFixed(1)+'%':'—'; }
+  function topN(obj,n){ return Object.entries(obj).sort(function(a,b){return b[1]-a[1];}).slice(0,n); }
+
+  // CALLOUTS
+  var co=CALLOUTS||[];
+  var coByP={},coByT={},coByD={};
+  co.forEach(function(r){coByP[r.p]=(coByP[r.p]||0)+1;coByT[r.t]=(coByT[r.t]||0)+1;coByD[r.d]=(coByD[r.d]||0)+1;});
+  var coEsc=co.filter(function(r){return r.esc;});
+  var coNoResp=co.filter(function(r){return !r.resp;});
+
+  // DEFCONS
+  var dc=DEFCONS||[];
+  var dcByL={},dcByDr={};
+  dc.forEach(function(r){dcByL[r.level]=(dcByL[r.level]||0)+1;dcByDr[r.driver]=(dcByDr[r.driver]||0)+1;});
+
+  // PREP
+  var prep=PREP||[];
+  var prepByT={};
+  prep.forEach(function(r){prepByT[r.prep]=(prepByT[r.prep]||0)+1;});
+
+  // INCIDENTS
+  var inc=INC_DATA||[];
+  var incOpen=inc.filter(function(r){return r.status==='Open'||r.status==='In Progress';});
+  var incByS={};
+  inc.forEach(function(r){incByS[r.status]=(incByS[r.status]||0)+1;});
+
+  // MISROUTES
+  var mr=MR_DATA||[];
+  var mrByP={},mrByD={},mrByProd={},mrByQ={};
+  mr.forEach(function(r){
+    mrByP[r.partner]=(mrByP[r.partner]||0)+1;
+    mrByD[r.d]=(mrByD[r.d]||0)+1;
+    mrByProd[r.product]=(mrByProd[r.product]||0)+1;
+    mrByQ[r.qshort]=(mrByQ[r.qshort]||0)+1;
+  });
+
+  // OOH
+  var ooh=OOH_DATA||[];
+  var oohByProd={},oohByTOD={},oohByD={},oohByAg={};
+  ooh.forEach(function(r){
+    oohByProd[r.product]=(oohByProd[r.product]||0)+1;
+    oohByTOD[r.tod]=(oohByTOD[r.tod]||0)+1;
+    oohByD[r.d]=(oohByD[r.d]||0)+1;
+    oohByAg[r.by]=(oohByAg[r.by]||0)+1;
+  });
+
+  // JIRA
+  var jira=JIRA_DATA||[];
+  var jiraOpen=jira.filter(function(r){return r.status!=='Done'&&r.status!=='Closed';});
+  var jiraOverdue=jira.filter(function(r){return r.overdue;});
+  var jiraByS={};
+  jira.forEach(function(r){jiraByS[r.status]=(jiraByS[r.status]||0)+1;});
+
+  // DEMAND
+  var de=DS_DE||[];
+  var sg=DS_SG||[];
+  var totOff=de.reduce(function(s,r){return s+(sfN(r['Offered'])||0);},0);
+  var totHnd=de.reduce(function(s,r){return s+(sfN(r['Handled'])||0);},0);
+  var avgSL=de.length?de.reduce(function(s,r){return s+(sfN(r['Service Level'])||0);},0)/de.length:0;
+  var avgAHT=de.length?de.reduce(function(s,r){return s+(sfN(r['AHT'])||0);},0)/de.length:0;
+  var avgAb=de.length?de.reduce(function(s,r){return s+(sfN(r['Abandon Rate'])||0);},0)/de.length:0;
+  // SG demand summary (totals only, no daily breakdown)
+  var sgDemSum={};
+  sg.forEach(function(r){
+    var s=r['Primary Staff Group'];if(!s)return;
+    if(!sgDemSum[s])sgDemSum[s]={off:0,hnd:0,tr:0,slS:0,slN:0,ahtS:0,ahtN:0,abS:0,abN:0};
+    var x=sgDemSum[s];
+    x.off+=(sfN(r['Offered'])||0);x.hnd+=(sfN(r['Handled'])||0);x.tr+=(sfN(r['Transfers'])||0);
+    var sl=sfN(r['Service Level']);if(sl!==null){x.slS+=sl;x.slN++;}
+    var aht=sfN(r['AHT']);if(aht!==null){x.ahtS+=aht;x.ahtN++;}
+    var ab=sfN(r['Abandon Rate']);if(ab!==null){x.abS+=ab;x.abN++;}
+  });
+  var sgDemTotals={};
+  Object.entries(sgDemSum).forEach(function(e){
+    var k=e[0],v=e[1];
+    sgDemTotals[k]={off:v.off,hnd:v.hnd,tr:v.tr,
+      sl:v.slN?pct(v.slS/v.slN):'—',aht:v.ahtN?(v.ahtS/v.ahtN).toFixed(1)+'m':'—',
+      ab:v.abN?pct(v.abS/v.abN):'—'};
+  });
+
+  // SUPPLY
+  var sd=DS_SD||[];
+  var se=DS_SE||[];
+  var supGapCt=sd.filter(function(r){var v=sfN(r['Actual Net % - (FTE)']);return v!==null&&v>=0.01&&v<1.0;}).length;
+  var supByP={};
+  sd.forEach(function(r){
+    var p=r['Partner'];if(!p)return;
+    if(!supByP[p])supByP[p]={req:0,act:0,npS:0,npN:0,occS:0,occN:0,gaps:0};
+    var x=supByP[p];
+    x.req+=(sfN(r['2. Baseline Adjusted Productive Required (FTE)'])||0);
+    x.act+=(sfN(r['Actual Prod FTE/Hours'])||0);
+    var np=sfN(r['Actual Net % - (FTE)']);if(np!==null){x.npS+=np;x.npN++;if(np<1.0)x.gaps++;}
+    var oc=sfN(r['Occupancy (FTE)']);if(oc!==null&&!isNaN(oc)){x.occS+=oc;x.occN++;}
+  });
+  var supPSum={};
+  Object.entries(supByP).forEach(function(e){
+    var k=e[0],v=e[1];
+    supPSum[k]={reqFTE:v.req.toFixed(1),actualFTE:v.act.toFixed(1),
+      avgNetPct:v.npN?pct(v.npS/v.npN):'—',avgOcc:v.occN?pct(v.occS/v.occN):'—',gaps:v.gaps};
+  });
+  // SG supply summary
+  var sgSupSm={};
+  sd.forEach(function(r){
+    var s=r['Staff Group'];if(!s)return;
+    if(!sgSupSm[s])sgSupSm[s]={req:0,act:0,npS:0,npN:0,occS:0,occN:0,gaps:0,partners:[]};
+    var x=sgSupSm[s];
+    x.req+=(sfN(r['2. Baseline Adjusted Productive Required (FTE)'])||0);
+    x.act+=(sfN(r['Actual Prod FTE/Hours'])||0);
+    if(r['Partner']&&x.partners.indexOf(r['Partner'])===-1)x.partners.push(r['Partner']);
+    var np=sfN(r['Actual Net % - (FTE)']);if(np!==null){x.npS+=np;x.npN++;if(np<1.0)x.gaps++;}
+    var oc=sfN(r['Occupancy (FTE)']);if(oc!==null&&!isNaN(oc)){x.occS+=oc;x.occN++;}
+  });
+  var sgSupTotals={};
+  Object.entries(sgSupSm).forEach(function(e){
+    var k=e[0],v=e[1];
+    sgSupTotals[k]={req:v.req.toFixed(1),act:v.act.toFixed(1),
+      netPct:v.npN?pct(v.npS/v.npN):'—',occ:v.occN?pct(v.occS/v.occN):'—',
+      gapDays:v.gaps,partners:v.partners};
+  });
+  // Eco supply summary (small - 126 records)
+  var seSum={};
+  se.forEach(function(r){
+    var e=r['Expert Ecosystem Parent'];if(!e)return;
+    if(!seSum[e])seSum[e]={req:0,act:0,npS:0,npN:0};
+    seSum[e].req+=(sfN(r['2. Baseline Adjusted Productive Required (FTE)'])||0);
+    seSum[e].act+=(sfN(r['Actual Prod FTE/Hours'])||0);
+    var np=sfN(r['Actual Net % - (FTE)']);if(np!==null){seSum[e].npS+=np;seSum[e].npN++;}
+  });
+  var ecoSupSummary={};
+  Object.entries(seSum).forEach(function(e){
+    var k=e[0],v=e[1];
+    ecoSupSummary[k]={req:v.req.toFixed(1),act:v.act.toFixed(1),avgNetPct:v.npN?pct(v.npS/v.npN):'—'};
+  });
+
+  // TICKER
+  var tg=STAFFING_GAPS||[];
+  var crit=tg.filter(function(g){return g.cls==='tcrit';});
+  var warn=tg.filter(function(g){return g.cls==='twarn';});
+  var low=tg.filter(function(g){return g.cls==='tlow';});
+
+  // Outlook SG summary (from DS_FORECAST_ALL - all SGs all partners Jul 6-10)
+  var outSGSummary={};
+  var fo=typeof DS_FORECAST_ALL!=='undefined'?DS_FORECAST_ALL:{};
+  Object.entries(fo).forEach(function(e){
+    var sg2=e[0],days=e[1];
+    if(!outSGSummary[sg2])outSGSummary[sg2]={};
+    Object.entries(days).forEach(function(d){
+      var day=d[0],partners=d[1];
+      outSGSummary[sg2][day]=partners.map(function(p){return p.partner+':'+p.netPct+'%';}).join(', ');
+    });
+  });
+
+  // Smart lookup: extract only SGs mentioned in the user's question
+  var userQ = (userQuestion||'').toUpperCase();
+  var allSGKeys = typeof sgDemand !== 'undefined' ? Object.keys(sgDemand) : [];
+  var mentionedSGs = allSGKeys.filter(function(sg){ return userQ.indexOf(sg.toUpperCase()) > -1 || userQ.indexOf(sg.replace(/_SG$/,'').toUpperCase()) > -1; });
+  // Also check sgActuals and sgOutlook keys
+  var allSupSGs = typeof sgActuals !== 'undefined' ? Object.keys(sgActuals) : [];
+  allSupSGs.forEach(function(sg){ if(mentionedSGs.indexOf(sg)===-1 && (userQ.indexOf(sg.toUpperCase())>-1 || userQ.indexOf(sg.replace(/_SG$/,'').toUpperCase())>-1)) mentionedSGs.push(sg); });
+
+  // Extract SG-like keywords: 2-10 char uppercase words, filter out common English words
+  var stopWords = ['THE','AND','FOR','ON','IN','OF','TO','IS','AT','BY','DO','IF','IT','AS',
+    'ME','MY','SO','UP','AN','BE','HE','OR','NO','WE','US','AM','GO','DO','RE',
+    'SHOW','WHAT','WERE','WAS','HAS','HAD','ARE','HAVE','WILL','WITH','FROM','THAT',
+    'THIS','THEY','THEM','THAN','THEN','WHEN','WHERE','HOW','WHO','ALL','ANY','EACH',
+    'GIVE','JUST','NEED','TELL','LOOK','ONLY','ALSO','BOTH','SOME','MUCH','MANY',
+    'JULY','JUNE','DAYS','DATE','DATA','WEEK','LAST','NEXT','BEST','MOST','HIGH','LOW',
+    'DEMAND','SUPPLY','STAFF','GROUP','PARTNER','DAILY','TOTAL','TREND','RATE','LEVEL',
+    'PERFORMANCE','DETAIL','SPECIFIC','OVERALL','AVERAGE','NUMBER','RECORDS','PLEASE',
+    'SECOND','FIRST','THIRD','FOURTH','FIFTH','MONDAY','TUESDAY','WEDNESDAY','THURSDAY',
+    'FRIDAY','SATURDAY','SUNDAY','JANUARY','FEBRUARY','MARCH','APRIL','MAY','AUGUST',
+    'SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  var rawKws = userQ.match(/[A-Z]{2,10}/g) || [];
+  var keywords = rawKws.filter(function(kw){ return stopWords.indexOf(kw) === -1; });
+  if(mentionedSGs.length === 0 && keywords.length > 0) {
+    // Try combinations: any 2+ keywords that all appear in the SG name
+    var bestMatches = [];
+    allSGKeys.concat(allSupSGs).forEach(function(sg){
+      var matchCount = keywords.filter(function(kw){ return sg.toUpperCase().indexOf(kw) > -1; }).length;
+      if(matchCount >= Math.min(2, keywords.length) && mentionedSGs.indexOf(sg) === -1) {
+        mentionedSGs.push(sg);
+        bestMatches.push({sg:sg, score:matchCount});
+      }
+    });
+    // Sort by most keyword matches
+    bestMatches.sort(function(a,b){ return b.score - a.score; });
+    mentionedSGs = bestMatches.map(function(x){ return x.sg; });
+  }
+
+  // Build targeted lookups - only for mentioned SGs (or all if none mentioned, capped at 5)
+  var targetSGs = mentionedSGs.length > 0 ? mentionedSGs.slice(0,5) : [];
+  var sgDemandCtx = {};
+  var sgActualsCtx = {};
+  var sgOutlookCtx = {};
+  if(typeof sgDemand !== 'undefined') {
+    if(targetSGs.length > 0) {
+      targetSGs.forEach(function(sg){ if(sgDemand[sg]) sgDemandCtx[sg] = sgDemand[sg]; });
+    }
+  }
+  if(typeof sgActuals !== 'undefined') {
+    if(targetSGs.length > 0) {
+      targetSGs.forEach(function(sg){ if(sgActuals[sg]) sgActualsCtx[sg] = sgActuals[sg]; });
+    }
+  }
+  if(typeof sgOutlook !== 'undefined') {
+    if(targetSGs.length > 0) {
+      targetSGs.forEach(function(sg){ if(sgOutlook[sg]) sgOutlookCtx[sg] = sgOutlook[sg]; });
+    } else {
+      sgOutlookCtx = sgOutlook; // outlook is small, always include
+    }
+  }
+  var sgNote = targetSGs.length > 0 ? 'Daily detail shown for: '+targetSGs.join(', ') : 'No specific SG detected - showing summaries only. Ask about a specific staff group for daily detail.';
+
+  var systemPrompt =
+    'You are GBSG Operations AI. Lead with tables. All daily SG detail is in this context - use it directly to answer specific date/SG questions.\n\n'
+    +'CALLOUTS ('+co.length+' | '+coEsc.length+' esc | '+coNoResp.length+' no-resp)\n'
+    +'Partners:'+JSON.stringify(coByP)+'\nTypes:'+JSON.stringify(coByT)+'\nDates:'+JSON.stringify(coByD)+'\n'
+    +'Escalations:'+JSON.stringify(coEsc)+'\nNo-response:'+JSON.stringify(coNoResp)+'\n\n'
+    +'DEFCONS ('+dc.length+') Levels:'+JSON.stringify(dcByL)+' Drivers:'+JSON.stringify(dcByDr)+'\nAll:'+JSON.stringify(dc)+'\n\n'
+    +'PREP ('+prep.length+') '+JSON.stringify(prepByT)+'\nAll:'+JSON.stringify(prep)+'\n\n'
+    +'INCIDENTS ('+inc.length+') Statuses:'+JSON.stringify(incByS)+'\nOpen:'+JSON.stringify(incOpen)+'\nAll:'+JSON.stringify(inc)+'\n\n'
+    +'MISROUTES ('+mr.length+')\nPartners:'+JSON.stringify(mrByP)+'\nDates:'+JSON.stringify(mrByD)+'\nProducts:'+JSON.stringify(mrByProd)+'\nTop queues:'+JSON.stringify(topN(mrByQ,15))+'\n\n'
+    +'OOH ('+ooh.length+')\nProducts:'+JSON.stringify(oohByProd)+'\nTOD:'+JSON.stringify(oohByTOD)+'\nDates:'+JSON.stringify(oohByD)+'\nTop agents:'+JSON.stringify(topN(oohByAg,10))+'\n\n'
+    +'JIRA ('+jira.length+') Statuses:'+JSON.stringify(jiraByS)+'\nOpen:'+JSON.stringify(jiraOpen)+'\nOverdue:'+JSON.stringify(jiraOverdue)+'\n\n'
+    +'DEMAND: '+totOff.toLocaleString()+' offered | SL:'+pct(avgSL)+' | AHT:'+avgAHT.toFixed(1)+'m | Abandon:'+pct(avgAb)+'\n'
+    +'Eco detail:'+JSON.stringify(de)+'\n'
+    +'SG totals:'+JSON.stringify(sgDemTotals)+'\n'
+    +'SG DAILY DETAIL - '+sgNote+'\nsgDemand:'+JSON.stringify(sgDemandCtx)+'\n\n'
+    +'SUPPLY ACTUALS (Jun 15-Jul 5)\nPartners:'+JSON.stringify(supPSum)+'\n'
+    +'Eco:'+JSON.stringify(ecoSupSummary)+'\n'
+    +'SG totals:'+JSON.stringify(sgSupTotals)+'\nGap records:<100%: '+supGapCt+'\n'
+    +'SG DAILY BY PARTNER:'+JSON.stringify(sgActualsCtx)+'\n\n'
+    +'OUTLOOK Jul 6-10 ALL partners ALL Net% (sgOutlook[sg][MM/DD]=[{partner,netPct,req,sched}]):'+JSON.stringify(sgOutlookCtx)+'\n'
+    +'Ticker critical:'+JSON.stringify(crit)+'\nWarning:'+JSON.stringify(warn)+'\nLow:'+JSON.stringify(low)+'\n'
+    +'Active tab:'+(window.activeTab||'unknown');
+
+  return { system: systemPrompt };
+}
+
+function aiParseActions(reply, query) {
+  // Parse <actions>[...]</actions> from response and render action buttons
+  var m = reply.match(/<actions>([\s\S]*?)<\/actions>/);
+  var bar = document.getElementById('ai-action-bar');
+  if (!bar) return;
+  if (!m) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  try {
+    var actions = JSON.parse(m[1].trim());
+    if (!actions.length) { bar.style.display='none'; return; }
+    bar.style.display = 'flex';
+    bar.innerHTML = actions.map(function(a, i) {
+      return '<button class="ai-action-btn" onclick="aiDoAction('+i+')" data-action=\''+JSON.stringify(a)+'\'>'+a.label+'</button>';
+    }).join('');
+    // Store actions
+    bar._actions = actions;
+  } catch(e) {
+    bar.style.display = 'none';
+  }
+}
+
+function aiDoAction(idx) {
+  var bar = document.getElementById('ai-action-bar');
+  if (!bar || !bar._actions) return;
+  var a = bar._actions[idx];
+  if (!a) return;
+
+  if (a.type === 'navigate') {
+    switchTab(a.tab);
+    aiAddMsg('bot', '✅ Navigated to the ' + a.tab + ' tab.');
+  }
+  else if (a.type === 'filter_date') {
+    var fromEl = document.getElementById(a.tab+'-f-from') || document.getElementById('f-from');
+    var toEl   = document.getElementById(a.tab+'-f-to')   || document.getElementById('f-to');
+    if (fromEl) fromEl.value = a.from;
+    if (toEl)   toEl.value   = a.to;
+    // Trigger the right apply function
+    var applyFns = {
+      callouts:'applyCoFilters', defcons:'applyDcFilters', prep:'applyPrepFilters',
+      inc:'applyIncFilters', misroutes:'applyMrFilters', ooh:'applyOohFilters',
+      jira:'applyJiraFilters', ds:'applyDsFilters'
+    };
+    var fn = window[applyFns[a.tab]];
+    if (fn) fn();
+    switchTab(a.tab);
+    aiAddMsg('bot', '✅ Date filter applied: ' + a.from + ' to ' + a.to + '.');
+  }
+  else if (a.type === 'highlight') {
+    aiAddMsg('bot', '💡 ' + a.message);
+  }
+}
+
+function aiAddMsg(role, text) {
+  var msgs = document.getElementById('ai-messages');
+  if (!msgs) return;
+
+  // Strip action tags from displayed text
+  var display = text.replace(/<actions>[\s\S]*?<\/actions>/g, '').trim();
+  if (!display) return;
+
+  // Convert markdown-ish formatting
+  display = display
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code style="background:var(--bg3);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:10px">$1</code>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>')
+    .replace(/^• /gm, '&bull; ')
+    .replace(/^- /gm, '&bull; ');
+
+  var div = document.createElement('div');
+  div.className = 'ai-msg ' + role;
+  div.innerHTML =
+    '<div class="ai-msg-avatar">'+(role==='bot'?'🤖':'👤')+'</div>'+
+    '<div class="ai-msg-bubble">'+display+'</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function aiShowTyping(show) {
+  var msgs = document.getElementById('ai-messages');
+  if (!msgs) return;
+  var existing = document.getElementById('ai-typing-indicator');
+  if (existing) existing.remove();
+  if (show) {
+    var div = document.createElement('div');
+    div.id = 'ai-typing-indicator';
+    div.className = 'ai-msg bot';
+    div.innerHTML = '<div class="ai-msg-avatar">🤖</div><div class="ai-msg-bubble ai-typing"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+function aiShowKeyPrompt() {
+  var existing = document.getElementById('ai-key-prompt');
+  if (existing) return;
+  var msgs = document.getElementById('ai-messages');
+  if (!msgs) return;
+  var div = document.createElement('div');
+  div.id = 'ai-key-prompt';
+  div.style.cssText = 'padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin:4px 0';
+  div.innerHTML = '<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px">&#x1F511; Enter your Anthropic API Key</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:8px">Your key is stored in browser session only and never sent anywhere except Anthropic.</div>'
+    + '<div style="display:flex;gap:6px">'
+    + '<input id="ai-key-input" type="password" placeholder="sk-ant-..." style="flex:1;padding:6px 10px;font-size:11px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text);outline:none">'
+    + '<button onclick="aiSaveKey()" style="padding:6px 12px;border-radius:6px;border:none;background:var(--blue);color:#fff;font-size:11px;font-weight:600;cursor:pointer">Save</button>'
+    + '</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  var inp = document.getElementById('ai-key-input');
+  if (inp) inp.focus();
+}
+
+function aiSaveKey() {
+  var inp = document.getElementById('ai-key-input');
+  if (!inp || !inp.value.trim()) return;
+  localStorage.setItem('gbsg_ai_key', inp.value.trim());
+  var prompt = document.getElementById('ai-key-prompt');
+  if (prompt) prompt.remove();
+  aiAddMsg('bot', 'API key saved for this session. What would you like to know?');
+}
+
+function aiClearKey() {
+  localStorage.removeItem('gbsg_ai_key');
+  aiAddMsg('bot', 'API key cleared.');
+}
+
+// Check for key on load - show prompt in welcome if no key
+(function() {
+
+})();
+
+// ══════════════════════════════════════════════════════
+// END GBSG AI AGENT
+// ══════════════════════════════════════════════════════
+
 // Render reporting periods (runs after all data is defined)
 renderReportingPeriods();
 </script>
-<script>
-  window.$crisp=[];
-  window.CRISP_WEBSITE_ID="790e7644-ad5a-490b-8edb-ad220e8d1c4b";
-  (function(){
-    var d=document;
-    var s=d.createElement("script");
-    s.src="https://client.crisp.chat/l.js";
-    s.async=1;
-    d.getElementsByTagName("head")[0].appendChild(s);
-  })();
-</script>
+
 
 <!-- ── Staffing Landing Overlay ── -->
 <div class="staffing-overlay" id="staffing-overlay">
@@ -6348,3 +6952,41 @@ renderReportingPeriods();
   </div>
 </div>
 >
+<button id="ai-agent-btn" onclick="aiTogglePanel()" title="Ask the GBSG AI">
+  🤖<span class="ai-badge">AI</span>
+</button>
+
+<div id="ai-panel">
+  <div class="ai-panel-header">
+    <div class="ai-avatar">🤖</div>
+    <div style="flex:1">
+      <div class="ai-panel-title">GBSG Operations AI</div>
+      <div class="ai-panel-subtitle">Live data · All tabs · Ask anything</div>
+    </div>
+    <button class="ai-close-btn" onclick="aiTogglePanel()">✕</button>
+  </div>
+  <div class="ai-shortcuts">
+    <span class="ai-shortcut" onclick="aiAsk('Give me a summary of current operations')">&#x1F4CA; Today summary</span>
+    <span class="ai-shortcut" onclick="aiAsk('Which partners have staffing gaps this week?')">&#x26A0;&#xFE0F; Staffing gaps</span>
+    <span class="ai-shortcut" onclick="aiAsk('Show me the top 5 misroute partners')">&#x1F500; Top misroutes</span>
+    <span class="ai-shortcut" onclick="aiAsk('Are there any open or in-progress incidents?')">&#x1F6A8; Open incidents</span>
+    <span class="ai-shortcut" onclick="aiAsk('What is the overall service level on demand?')">&#x1F4C8; SL trend</span>
+    <span class="ai-shortcut" onclick="aiAsk('Which staff groups are most understaffed?')">&#x1F3ED; Supply gaps</span>
+  </div>
+  <div id="ai-messages">
+    <div class="ai-msg bot">
+      <div class="ai-msg-avatar">🤖</div>
+      <div class="ai-msg-bubble">
+        Hi! I am your GBSG Operations AI with live access to all dashboard data across every tab.
+        I can <strong>answer questions</strong>, <strong>navigate tabs</strong>, <strong>filter data</strong>, and <strong>surface insights</strong>. What would you like to know?
+      </div>
+    </div>
+  </div>
+  <div id="ai-action-bar" class="ai-action-bar" style="display:none"></div>
+  <div class="ai-input-row">
+    <textarea id="ai-input" placeholder="Ask about any tab, filter data, get insights..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiSend()}"
+      oninput="this.style.height='36px';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+    <button id="ai-send" onclick="aiSend()">&#x27A4;</button>
+  </div>
+</div>
