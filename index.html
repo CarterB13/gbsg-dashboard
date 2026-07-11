@@ -7435,6 +7435,20 @@ function renderMapTable() {
 
       expandHTML = `<tr class="map-expand-row"><td colspan="12">
         <div style="background:var(--bg2);border-radius:8px;padding:16px;margin:4px 0;border:1px solid var(--border)">
+          <div style="margin-bottom:14px">
+            <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;text-transform:uppercase">Key Identifiers</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
+              ${[['Routing Profile',rp],['Queue',q],['Staff Group',sg],['Forecast Group',fg]].map(([l,v])=>`
+                <div style="background:var(--bg);border-radius:6px;padding:8px 10px;display:flex;align-items:center;gap:8px;justify-content:space-between">
+                  <div style="min-width:0;flex:1">
+                    <div style="font-size:9px;color:var(--text3);margin-bottom:2px">${l}</div>
+                    <div onclick="event.stopPropagation()" style="font-size:11px;font-family:monospace;font-weight:500;color:var(--text1);word-break:break-all;user-select:text;cursor:text">${v||'—'}</div>
+                  </div>
+                  ${v?`<button onclick="event.stopPropagation();(function(b,t){navigator.clipboard.writeText(t).then(function(){var o=b.textContent;b.textContent='✓';b.style.color='var(--green)';setTimeout(function(){b.textContent=o;b.style.color='';},1200);});})(this,'${v.replace(/'/g,"\\'")}')"
+                    style="flex-shrink:0;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text3);font-size:10px;padding:3px 7px;cursor:pointer;white-space:nowrap">Copy</button>`:''}
+                </div>`).join('')}
+            </div>
+          </div>
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:12px">
             <div>
               <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;text-transform:uppercase">Queue Configuration</div>
@@ -7465,6 +7479,7 @@ function renderMapTable() {
             </div>
           </div>
           ${supHTML}
+          </div>
         </div>
       </td></tr>`;
     }
