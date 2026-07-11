@@ -1122,6 +1122,23 @@ canvas:hover { opacity: 0.9; }
 #ai-send:disabled{opacity:.4;cursor:default}
 
 </style>
+<!-- Google Analytics GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4W4CXN2VCP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-4W4CXN2VCP', {
+    page_title: 'GBSG Operations Dashboard',
+    page_location: window.location.href,
+    send_page_view: true
+  });
+
+  // ── GA4 event helper ─────────────────────────────────────────
+  function gaEvent(name, params) {
+    if(typeof gtag === 'function') gtag('event', name, params || {});
+  }
+</script>
 </head>
 <body>
 <canvas id="neural-canvas" aria-hidden="true"></canvas>
@@ -1896,7 +1913,7 @@ canvas:hover { opacity: 0.9; }
       <!-- Supply filters -->
       <div class="filter-group" id="ds-s-eco-fg" style="display:none"><span class="filter-label">Ecosystem</span><div class="ms-wrap" id="ms-ds-s-eco"></div></div>
       <div class="filter-group" id="ds-s-partner-fg" style="display:none"><span class="filter-label">Partner</span><div class="ms-wrap" id="ms-ds-s-partner"></div></div>
-      <div class="filter-group" id="ds-s-sg-fg" style="display:none"><span class="filter-label">Staff Group</span><div class="ms-wrap" id="ms-ds-s-sg"></div></div>
+      <div class="filter-group" id="ds-s-sg-fg"><span class="filter-label">Staff Group</span><div class="ms-wrap" id="ms-ds-s-sg"></div></div>
       <div class="filter-group" id="ds-s-occ-fg" style="display:none"><span class="filter-label">Occupancy</span>
         <select id="ds-s-occ-filter" onchange="applyDsFilters()" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:12px;padding:6px 10px;cursor:pointer">
           <option value="">All</option>
@@ -1976,7 +1993,7 @@ canvas:hover { opacity: 0.9; }
           <button id="ds-s-tog-act" onclick="dsSwitchSupplyView('actuals')" style="padding:4px 16px;border-radius:16px;border:none;font-size:11px;font-weight:700;cursor:pointer;background:var(--blue);color:#fff;transition:all .2s">📊 Actuals</button>
           <button id="ds-s-tog-out" onclick="dsSwitchSupplyView('outlook')" style="padding:4px 16px;border-radius:16px;border:none;font-size:11px;font-weight:700;cursor:pointer;background:transparent;color:var(--text3);transition:all .2s">🔭 Outlook</button>
         </div>
-        <span style="font-size:10px;color:var(--text3)" id="ds-s-view-label">Actuals: Jun 18 – Jul 8, 2026</span>
+        <span style="font-size:10px;color:var(--text3)" id="ds-s-view-label">Actuals: Jun 18 – Jul 8, 2026</span><span style="font-size:10px;color:var(--text3);margin-left:12px;" id="ds-s-kpi-subtitle"></span>
       </div>
       <div id="ds-s-actuals-section">
         <div class="kpi-grid" id="ds-s-kpis"></div>
@@ -1986,7 +2003,7 @@ canvas:hover { opacity: 0.9; }
           <div style="position:relative;height:180px"><canvas id="ds-s-net-chart"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="card-header"><span class="card-title">NET % BY ECOSYSTEM</span></div>
+          <div class="card-header"><span class="card-title" id="ds-s-eco-chart-label">NET % BY ECOSYSTEM</span></div>
           <div style="position:relative;height:180px"><canvas id="ds-s-eco-chart"></canvas></div>
         </div>
       </div>
@@ -2060,6 +2077,7 @@ let expandedRow = null;
 
 // --- TABS ---
 function switchTab(tab) {
+  gaEvent('tab_view', { tab_name: tab, event_category: 'navigation' });
   activeTab = tab;
   ['callouts','defcons','prep','inc','misroutes','ooh','jira','ds'].forEach(t => {
     const pane = document.getElementById('pane-' + t);
@@ -2267,6 +2285,8 @@ const CO_PAGE = 25;
 
 // --- CO FILTERS ---
 function applyCoFilters() {
+  gaEvent('filter_apply', { tab: 'callouts', event_category: 'filters' });
+
   const pf = msGetValues('ms-partner');
   const tf = msGetValues('ms-type');
   const mbf = msGetValues('ms-madeby');
@@ -2627,6 +2647,8 @@ function renderCoAll() {
 
 // --- DEFCON FILTERS ---
 function applyDcFilters() {
+  gaEvent('filter_apply', { tab: 'defcons', event_category: 'filters' });
+
   const df = msGetValues('ms-dc-driver');
   const bf = msGetValues('ms-dc-by');
   const fd = document.getElementById('dc-f-from').value;
@@ -3115,6 +3137,7 @@ document.addEventListener('keydown', e => {
 
 // ── SCREENSHOT ──
 function takeScreenshot() {
+  gaEvent('export_click', { event_category: 'export' });
   const btn = document.getElementById('screenshotBtn');
   btn.classList.add('capturing');
   btn.innerHTML = '<span>⏳</span> Capturing…';
@@ -3381,6 +3404,8 @@ function initPrepFilters() {
 }
 
 function applyPrepFilters() {
+  gaEvent('filter_apply', { tab: 'prep_time', event_category: 'filters' });
+
   const byF = msGetValues('ms-prep-by') || [];
   const timeF = msGetValues('ms-prep-time') || [];
   const queueF = msGetValues('ms-prep-queue') || [];
@@ -3390,10 +3415,10 @@ function applyPrepFilters() {
     if (byF.length && !byF.includes(r.by)) return false;
     if (timeF.length && !timeF.includes(r.prep)) return false;
     if (queueF.length && !queueF.some(q => r.queues.includes(q))) return false;
-    if (fd && (r.ts||"") < fd) return false;
-    if (td && (r.ts||"") > td) return false;
+    if (fd && (_prepDate(r)||"") < fd) return false;
+    if (td && (_prepDate(r)||"") > td) return false;
     if (prepTodFilter) {
-      const m2=(r.tm||'').match(/(\d+):(\d+)\s*(AM|PM)/i);
+      const m2=(r.ts||r.tm||'').match(/(\d+):(\d+)\s*(AM|PM)/i);
       if (!m2) return false;
       let h=parseInt(m2[1]); const ap=m2[3].toUpperCase();
       if(ap==='PM'&&h!==12)h+=12; if(ap==='AM'&&h===12)h=0;
@@ -3547,7 +3572,7 @@ function renderPrepInsights() {
       return `<li class="insight-item${act?' insight-active':''}" style="cursor:pointer" onclick="insightFilter('ms-prep-by','${n.replace(/'/g,"\'")}',applyPrepFilters)"><span class="insight-item-name" style="font-size:11px">${n.split(' ')[0]}</span><span style="font-size:11px;color:var(--text3)"><span style="color:var(--green)">30s:${v.s30}</span> · <span style="color:var(--purple)">90s:${v.s90}</span></span></li>`;
     }).join('');
 
-  const dCountAll = {}; PREP.forEach(r => { if(r.d) dCountAll[r.d]=(dCountAll[r.d]||0)+1; });
+  const dCountAll = {}; PREP.forEach(r => { var _d=_prepDate(r); if(_d) dCountAll[_d]=(dCountAll[_d]||0)+1; });
   const fromEl=document.getElementById('prep-f-from'), toEl=document.getElementById('prep-f-to');
   const curFrom=fromEl?fromEl.value:'', curTo=toEl?toEl.value:'';
   document.getElementById('prep-daily-list').innerHTML = Object.entries(dCountAll).sort((a,b)=>b[1]-a[1]).slice(0,6)
@@ -3561,7 +3586,7 @@ function renderPrepInsights() {
   if (todEl) {
     const todCt = {Morning:0,Afternoon:0,Evening:0,Night:0};
     prepFiltered.forEach(r => {
-      const m = (r.tm||'').match(/(\d+):(\d+)\s*(AM|PM)/i);
+      const m = (r.ts||r.tm||'').match(/(\d+):(\d+)\s*(AM|PM)/i);
       if (!m) return;
       let h = parseInt(m[1]);
       const ampm = m[3].toUpperCase();
@@ -3869,6 +3894,8 @@ function initIncFilters() {
 }
 
 function applyIncFilters() {
+  gaEvent('filter_apply', { tab: 'inc_inv', event_category: 'filters' });
+
   const tf = msGetValues('ms-inc-type') || [];
   const pf = msGetValues('ms-inc-priority') || [];
   const sf = msGetValues('ms-inc-status') || [];
@@ -4615,6 +4642,8 @@ function initMrFilters() {
 }
 
 function applyMrFilters() {
+  gaEvent('filter_apply', { tab: 'misroutes', event_category: 'filters' });
+
   const pf  = msGetValues('ms-mr-partner') || [];
   const sf  = msGetValues('ms-mr-site')    || [];
   const cf  = msGetValues('ms-mr-channel') || [];
@@ -4969,6 +4998,8 @@ function initOohFilters() {
 }
 
 function applyOohFilters() {
+  gaEvent('filter_apply', { tab: 'out_of_hoo', event_category: 'filters' });
+
   const af  = msGetValues('ms-ooh-agent')   || [];
   const pf  = msGetValues('ms-ooh-product') || [];
   const cf  = msGetValues('ms-ooh-channel') || [];
@@ -5281,6 +5312,8 @@ function initJiraFilters() {
 }
 
 function applyJiraFilters() {
+  gaEvent('filter_apply', { tab: 'jira_board', event_category: 'filters' });
+
   const af  = msGetValues('ms-jira-assignee') || [];
   const sf  = msGetValues('ms-jira-status')   || [];
   const lf  = msGetValues('ms-jira-label')    || [];
@@ -5514,6 +5547,7 @@ function renderJiraAll(){renderJiraKPIs();renderJiraBoard();renderJiraDueSection
 var _stfActiveFilter = 'all';
 
 function openStaffingPage(filterDay) {
+  gaEvent('staffing_gap_click', { day: filterDay||'all', event_category: 'staffing' });
   var overlay = document.getElementById('staffing-overlay');
   if (!overlay) return;
   overlay.classList.add('open');
@@ -5949,6 +5983,7 @@ function _dsGrp(arr,key){
 }
 
 function dsSwitchView(v){
+  gaEvent('ds_view_switch', { view: v, event_category: 'demand_supply' });
   _dsView=v;
   var ds=document.getElementById('ds-demand-section'),ss=document.getElementById('ds-supply-section');
   var dfe=document.getElementById('ds-d-eco-fg'),sfe=document.getElementById('ds-s-eco-fg'),sfp=document.getElementById('ds-s-partner-fg');
@@ -5957,6 +5992,14 @@ function dsSwitchView(v){
   if(dfe)dfe.style.display=v==='demand'?'':'none';
   if(sfe)sfe.style.display=v==='supply'?'':'none';
   if(sfp)sfp.style.display=v==='supply'?'':'none';
+  // Show demand-only filters
+  ['ds-d-sg-fg','ds-d-sl-fg','ds-d-oitf-fg','ds-d-ahtitf-fg','ds-d-ab-fg'].forEach(function(id){
+    var e=document.getElementById(id);if(e)e.style.display=v==='demand'?'':'none';
+  });
+  // Show supply-only filters
+  ['ds-s-sg-fg','ds-s-occ-fg','ds-s-np-fg'].forEach(function(id){
+    var e=document.getElementById(id);if(e)e.style.display=v==='supply'?'':'none';
+  });
   var bd=document.getElementById('ds-tog-d'),bs=document.getElementById('ds-tog-s');
   if(bd){bd.style.background=v==='demand'?'var(--blue)':'var(--bg3)';bd.style.color=v==='demand'?'#fff':'var(--text3)';}
   if(bs){bs.style.background=v==='supply'?'var(--green)':'var(--bg3)';bs.style.color=v==='supply'?'#fff':'var(--text3)';}
@@ -5965,6 +6008,7 @@ function dsSwitchView(v){
 
 
 function applyDsFilters(){
+  gaEvent('filter_apply', { tab: 'demand_supply', view: _dsView, event_category: 'filters' });
   var ef=msGetValues('ms-ds-d-eco')||[], sgf=msGetValues('ms-ds-d-sg')||[];
   var sef=msGetValues('ms-ds-s-eco')||[], pf=msGetValues('ms-ds-s-partner')||[], ssgf=msGetValues('ms-ds-s-sg')||[];
   var frm=(document.getElementById('ds-f-from')||{}).value||'',tot=(document.getElementById('ds-f-to')||{}).value||'';
@@ -6075,6 +6119,9 @@ function _dsKPIs(){
   var surp=_dsSDf.filter(function(r){var v=_sf(r['Actual Net % - (FTE)']);return v!==null&&v>1.5;}).length;
   var occVals=_dsSDf.map(function(r){return _sf(r['Occupancy (FTE)']);}).filter(function(v){return v!==null&&!isNaN(v)&&typeof v==='number';});
   var avgOccKPI=occVals.length?Math.min(occVals.reduce(function(a,b){return a+b;})/occVals.length,1.0):0;
+  var ssgf2=msGetValues('ms-ds-s-sg')||[];
+  var sSub=document.getElementById('ds-s-kpi-subtitle');
+  if(sSub)sSub.textContent=ssgf2.length?'Filtered: '+ssgf2.join(', '):'All Staff Groups · '+[...new Set(_dsSDf.map(function(r){return r['Staff Group'];}))].filter(Boolean).length+' groups';
   var sEl=document.getElementById('ds-s-kpis');
   if(sEl)sEl.innerHTML=[
     {l:'Required FTE',v:req.toFixed(1),s:'baseline required',i:'📋',c:'var(--blue)'},
@@ -6121,6 +6168,9 @@ function _dsCharts(){
   if(c3){_dsCh.slt=new Chart(c3,{type:'line',data:{labels:slD.map(function(d){return d.slice(5);}),datasets:[{label:'Avg SL%',data:slD.map(function(d){return slBD[d].n?slBD[d].s/slBD[d].n*100:null;}),borderColor:'var(--green)',backgroundColor:'rgba(16,185,129,.1)',fill:true,tension:0.3,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:70,max:100,ticks:{callback:function(v){return v+'%';},color:'var(--text3)',font:{size:9}}},x:{ticks:{color:'var(--text3)',font:{size:9}}}}}});}
 
   // S1: Daily Net FTE — use _dsSDf so SG+partner filters apply
+  var ssgf=msGetValues('ms-ds-s-sg')||[];
+  var useSSG=ssgf.length>0;
+
   var sBD={};
   _dsSDf.forEach(function(r){sBD[r['Day']]=(sBD[r['Day']]||0)+(_sf(r['Actual Net (FTE)'])||0);});
   var sD=Object.keys(sBD).sort();
@@ -6128,13 +6178,28 @@ function _dsCharts(){
   var c4=document.getElementById('ds-s-net-chart');
   if(c4){_dsCh.net=new Chart(c4,{type:'bar',data:{labels:sD.map(function(d){return d.slice(5);}),datasets:[{label:'Net FTE',data:sD.map(function(d){return sBD[d];}),backgroundColor:sD.map(function(d){return sBD[d]>=0?'rgba(16,185,129,.7)':'rgba(239,68,68,.7)';}),borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{color:'var(--text3)',font:{size:9}}},x:{ticks:{color:'var(--text3)',font:{size:9}}}}}});}
 
-  // S2: Net% by Eco — use _dsSEf (eco-level supply, filtered by eco/partner/date)
-  var sEcos=[...new Set(_dsSEf.map(function(r){return r['Expert Ecosystem Parent'];}))].filter(Boolean).sort();
-  var eNet=sEcos.map(function(e){var rows=_dsSEf.filter(function(r){return r['Expert Ecosystem Parent']===e;});return rows.length?rows.reduce(function(s,r){return s+(_sf(r['Actual Net % - (FTE)'])||0);},0)/rows.length*100:0;});
-  if(_dsCh.eco)_dsCh.eco.destroy();
-  var c5=document.getElementById('ds-s-eco-chart');
-  if(c5){_dsCh.eco=new Chart(c5,{type:'bar',data:{labels:sEcos,datasets:[{label:'Net%',data:eNet,backgroundColor:eNet.map(function(v){return v>=100?'rgba(16,185,129,.75)':v>=80?'rgba(245,158,11,.75)':'rgba(239,68,68,.75)';}),borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:function(v){return v.toFixed(0)+'%';},color:'var(--text3)',font:{size:9}}},y:{ticks:{color:'var(--text3)',font:{size:9}}}}}});}
+  // S2: Net% breakdown — by SG if SG filter active, else by Ecosystem
+  if(useSSG){
+    // SG selected: show daily Net% trend for selected SGs from _dsSDf
+    var sgKeys=[...new Set(_dsSDf.map(function(r){return r['Staff Group'];}))].filter(Boolean).sort();
+    var sgNet=sgKeys.map(function(sg){var rows=_dsSDf.filter(function(r){return r['Staff Group']===sg;});return rows.length?rows.reduce(function(s,r){return s+(_sf(r['Actual Net % - (FTE)'])||0);},0)/rows.length*100:0;});
+    if(_dsCh.eco)_dsCh.eco.destroy();
+    var c5=document.getElementById('ds-s-eco-chart');
+    var c5Lbl=document.getElementById('ds-s-eco-chart-label');
+    if(c5Lbl)c5Lbl.textContent='NET % BY STAFF GROUP';
+    if(c5){_dsCh.eco=new Chart(c5,{type:'bar',data:{labels:sgKeys.map(function(s){return s.length>30?s.slice(0,30)+'…':s;}),datasets:[{label:'Net%',data:sgNet,backgroundColor:sgNet.map(function(v){return v>=100?'rgba(16,185,129,.75)':v>=80?'rgba(245,158,11,.75)':'rgba(239,68,68,.75)';}),borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' Net%: '+c.raw.toFixed(1)+'%';}}}},scales:{x:{ticks:{callback:function(v){return v.toFixed(0)+'%';},color:'var(--text3)',font:{size:9}}},y:{ticks:{color:'var(--text3)',font:{size:9}}}}}});}
+  } else {
+    // No SG filter: show Net% by Ecosystem (original behavior)
+    var sEcos=[...new Set(_dsSEf.map(function(r){return r['Expert Ecosystem Parent'];}))].filter(Boolean).sort();
+    var eNet=sEcos.map(function(e){var rows=_dsSEf.filter(function(r){return r['Expert Ecosystem Parent']===e;});return rows.length?rows.reduce(function(s,r){return s+(_sf(r['Actual Net % - (FTE)'])||0);},0)/rows.length*100:0;});
+    if(_dsCh.eco)_dsCh.eco.destroy();
+    var c5=document.getElementById('ds-s-eco-chart');
+    var c5Lbl=document.getElementById('ds-s-eco-chart-label');
+    if(c5Lbl)c5Lbl.textContent='NET % BY ECOSYSTEM';
+    if(c5){_dsCh.eco=new Chart(c5,{type:'bar',data:{labels:sEcos,datasets:[{label:'Net%',data:eNet,backgroundColor:eNet.map(function(v){return v>=100?'rgba(16,185,129,.75)':v>=80?'rgba(245,158,11,.75)':'rgba(239,68,68,.75)';}),borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{callback:function(v){return v.toFixed(0)+'%';},color:'var(--text3)',font:{size:9}}},y:{ticks:{color:'var(--text3)',font:{size:9}}}}}});}
+  }
 }
+
 
 function _iRow(i,name,val,col,sub){
   return '<li class="insight-item" style="padding:6px 0;display:flex;align-items:center;gap:8px">'
@@ -6526,6 +6591,7 @@ var _aiThinking = false;
 
 function aiTogglePanel() {
   _aiOpen = !_aiOpen;
+  gaEvent(_aiOpen ? 'ai_panel_open' : 'ai_panel_close', { event_category: 'ai_agent' });
   var panel = document.getElementById('ai-panel');
   if (panel) panel.classList.toggle('open', _aiOpen);
   if (_aiOpen) {
@@ -6545,6 +6611,7 @@ function aiSend() {
   if (!inp || _aiThinking) return;
   var q = inp.value.trim();
   if (!q) return;
+  gaEvent('ai_message_sent', { event_category: 'ai_agent', query_length: q.length });
   inp.value = '';
   inp.style.height = '36px';
 
