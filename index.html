@@ -380,7 +380,7 @@
 [data-theme="intuit"] .kpi-sub{color:#8898B0}
 [data-theme="intuit"] .kpi-sub b{color:#5A7090}
 [data-theme="intuit"] .kpi-hint{color:#8898B0}
-[data-theme="intuit"] .kpi-emoji{font-size:22px;position:absolute;top:12px;right:12px;opacity:.7}
+[data-theme="intuit"] .kpi-emoji{font-size:22px;position:absolute;top:12px;right:12px;opacity:1}
 [data-theme="intuit"] .filter-bar{background:linear-gradient(180deg,#C8D4E0 0%,#C0CCDA 100%);border:1px solid #A8B8C8;box-shadow:inset 0 1px 4px rgba(0,0,0,.06),0 1px 0 rgba(255,255,255,.4)}
 [data-theme="intuit"] .filter-label{color:#4A6080;font-weight:600;letter-spacing:.4px}
 [data-theme="intuit"] .ms-trigger{background:#F0F4F8;border:1px solid #A8B8C8;color:#2A3A50;box-shadow:0 1px 4px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.6)}
@@ -833,7 +833,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .kpi-card.red::before{background:var(--red)}
 .kpi-card.purple::before{background:var(--purple)}
 .kpi-card.teal::before{background:var(--teal)}
-.kpi-icon{position:absolute;top:12px;right:12px;font-size:22px;opacity:.12}
+.kpi-icon{position:absolute;top:12px;right:12px;font-size:22px;opacity:.45}
 .kpi-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:8px}
 .kpi-val{font-size:28px;font-weight:700;color:var(--text);line-height:1;margin-bottom:4px}
 .kpi-sub{font-size:11px;color:var(--text3)}
@@ -1154,7 +1154,20 @@ canvas:hover { opacity: 0.9; }
   gtag('config', 'G-4W4CXN2VCP', {
     page_title: 'GBSG Operations Dashboard',
     page_location: window.location.href,
-    send_page_view: true
+    send_page_view: true,
+    // custom_map links your event parameter names to GA4 custom dimension slots.
+    // These slots (dimension1–6) must also be registered in GA4 Admin > Custom Definitions.
+    // See the GA4 Setup Guide file for step-by-step instructions.
+    custom_map: {
+      dimension1: 'tab_name',
+      dimension2: 'event_category',
+      dimension3: 'tab',
+      dimension4: 'view',
+      dimension5: 'day',
+      dimension6: 'query_length',
+      dimension7: 'visitor_name',
+      dimension8: 'visitor_date'
+    }
   });
 
   // ── GA4 event helper ─────────────────────────────────────────
@@ -1807,7 +1820,7 @@ canvas:hover { opacity: 0.9; }
         </div>
       </div>
       <div class="kpi-modal-body">
-        <div class="kpi-modal-tbl-head mg">
+        <div class="kpi-modal-tbl-head mg" id="kpiModalColHeaders">
           <span>Date / Time</span><span>Partner(s)</span><span>Type</span>
           <span>Made by</span><span>Response</span><span>Escalated</span><span></span>
         </div>
@@ -2198,6 +2211,8 @@ let expandedRow = null;
 // --- TABS ---
 function switchTab(tab) {
   gaEvent('tab_view', { tab_name: tab, event_category: 'navigation' });
+  // Also set a user property so GA4 Audience reports can segment by last-visited tab
+  if(typeof gtag === 'function') gtag('set', 'user_properties', { last_tab_viewed: tab });
   activeTab = tab;
   ['callouts','defcons','prep','inc','misroutes','ooh','jira','ds','mapping'].forEach(t => {
     const pane = document.getElementById('pane-' + t);
@@ -3113,11 +3128,11 @@ function openDcKpiModal(kpi) {
       }).join('');
 
   // Swap modal table header for defcon columns
-  document.querySelector('.kpi-modal-tbl-head').innerHTML = `
+  document.getElementById('kpiModalColHeaders').innerHTML = `
     <span>Staff group</span><span>Level</span><span>Driver</span>
     <span>Start time</span><span>Submitted by</span><span></span>`;
-  document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '1fr 80px 1fr 180px 130px 24px';
-  document.querySelector('.kpi-modal-tbl-head').className = 'kpi-modal-tbl-head';
+  document.getElementById('kpiModalColHeaders').style.gridTemplateColumns = '1fr 80px 1fr 180px 130px 24px';
+  document.getElementById('kpiModalColHeaders').className = 'kpi-modal-tbl-head';
 
   _modalCurrentRows = rows;
   _modalCurrentTitle = title;
@@ -3246,13 +3261,14 @@ function closeKpiModal(e) {
   modal.classList.remove('open');
   document.body.style.overflow = '';
   kpiModalExpandedRow = null;
-  // Reset header to callout columns if it was in defcon mode
-  if (modal.dataset.mode === 'defcon' || modal.dataset.mode === 'prep' || modal.dataset.mode === 'inc') {
-    document.querySelector('.kpi-modal-tbl-head').innerHTML = `
-      <span>Date / Time</span><span>Partner(s)</span><span>Type</span>
-      <span>Made by</span><span>Response</span><span>Escalated</span><span></span>`;
-    document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '';
-    document.querySelector('.kpi-modal-tbl-head').className = 'kpi-modal-tbl-head mg';
+  // Reset header to callout columns if it was in defcon/prep/inc/mapping mode
+  if (modal.dataset.mode === 'defcon' || modal.dataset.mode === 'prep' || modal.dataset.mode === 'inc' || modal.dataset.mode === 'mapping') {
+    document.getElementById('kpiModalColHeaders').innerHTML =
+      '<span>Date / Time</span><span>Partner(s)</span><span>Type</span>' +
+      '<span>Made by</span><span>Response</span><span>Escalated</span><span></span>';
+    document.getElementById('kpiModalColHeaders').style.gridTemplateColumns = '';
+    document.getElementById('kpiModalColHeaders').style.gap = '';
+    document.getElementById('kpiModalColHeaders').className = 'kpi-modal-tbl-head mg';
     modal.dataset.mode = 'callout';
   }
 }
@@ -3891,11 +3907,11 @@ function openPrepKpiModal(kpi) {
       }).join('');
 
   // Swap header for prep columns
-  document.querySelector('.kpi-modal-tbl-head').innerHTML = `
+  document.getElementById('kpiModalColHeaders').innerHTML = `
     <span>Date / Time</span><span>Prep</span><span>Count</span>
     <span>Queues adjusted</span><span>Submitted by</span><span></span>`;
-  document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '90px 90px 110px 1fr 140px 24px';
-  document.querySelector('.kpi-modal-tbl-head').className = 'kpi-modal-tbl-head';
+  document.getElementById('kpiModalColHeaders').style.gridTemplateColumns = '90px 90px 110px 1fr 140px 24px';
+  document.getElementById('kpiModalColHeaders').className = 'kpi-modal-tbl-head';
 
   _modalCurrentRows = rows;
   _modalCurrentTitle = title;
@@ -4490,9 +4506,9 @@ function openIncKpiModal(kpi) {
     }).join('');
 
   // Swap modal header
-  document.querySelector('.kpi-modal-tbl-head').innerHTML = '<span>INC # / Service</span><span>Type</span><span>Priority</span><span>Summary</span><span>Status</span><span></span>';
-  document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '160px 60px 90px 1fr 100px 24px';
-  document.querySelector('.kpi-modal-tbl-head').className = 'kpi-modal-tbl-head';
+  document.getElementById('kpiModalColHeaders').innerHTML = '<span>INC # / Service</span><span>Type</span><span>Priority</span><span>Summary</span><span>Status</span><span></span>';
+  document.getElementById('kpiModalColHeaders').style.gridTemplateColumns = '160px 60px 90px 1fr 100px 24px';
+  document.getElementById('kpiModalColHeaders').className = 'kpi-modal-tbl-head';
 
   _modalCurrentRows = rows;
   _modalCurrentTitle = title;
@@ -5054,8 +5070,8 @@ function openMrKpiModal(kpi) {
   document.getElementById('kpiModalTitle').textContent = title;
   document.getElementById('kpiModalMeta').textContent  = rows.length.toLocaleString()+' records';
   document.getElementById('kpiModalFooter').textContent = rows.length.toLocaleString()+' total \u00b7 click any row to expand details';
-  document.querySelector('.kpi-modal-tbl-head').innerHTML = '<span>Date</span><span>Contact ID</span><span>Partner \u00b7 Site</span><span>Expert ID</span><span>Channel</span><span>Duration</span><span></span>';
-  document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '80px 1fr 160px 110px 80px 70px 24px';
+  document.getElementById('kpiModalColHeaders').innerHTML = '<span>Date</span><span>Contact ID</span><span>Partner \u00b7 Site</span><span>Expert ID</span><span>Channel</span><span>Duration</span><span></span>';
+  document.getElementById('kpiModalColHeaders').style.gridTemplateColumns = '80px 1fr 160px 110px 80px 70px 24px';
   kpiModalExpandedRow = null;
 
   document.getElementById('kpiModalBody').innerHTML = !rows.length
@@ -5382,8 +5398,8 @@ function openOohKpiModal(kpi) {
   document.getElementById('kpiModalTitle').textContent = title;
   document.getElementById('kpiModalMeta').textContent = rows.length + ' records';
   document.getElementById('kpiModalFooter').textContent = rows.length + ' total records \u00b7 click any row to expand details';
-  document.querySelector('.kpi-modal-tbl-head').innerHTML = '<span>Date / Time</span><span>Queue</span><span>Agent</span><span>Channel</span><span>Product</span><span></span>';
-  document.querySelector('.kpi-modal-tbl-head').style.gridTemplateColumns = '100px 1fr 160px 100px 90px 24px';
+  document.getElementById('kpiModalColHeaders').innerHTML = '<span>Date / Time</span><span>Queue</span><span>Agent</span><span>Channel</span><span>Product</span><span></span>';
+  document.getElementById('kpiModalColHeaders').style.gridTemplateColumns = '100px 1fr 160px 100px 90px 24px';
   kpiModalExpandedRow = null;
 
   document.getElementById('kpiModalBody').innerHTML = !rows.length
@@ -7388,19 +7404,19 @@ function renderMapKPIs() {
   var taskCount  = mapFiltered.filter(r=>r[MI.qT]===1).length;
 
   var kpis = [
-    {label:'Total Mappings', val:total.toLocaleString(), sub:'routing entries', emoji:'🗺️', color:'blue'},
-    {label:'Active', val:active.toLocaleString(), sub:`${total?Math.round(active/total*100):0}% of total`, emoji:'✅', color:'green'},
-    {label:'Inactive', val:inactive.toLocaleString(), sub:`${total?Math.round(inactive/total*100):0}% of total`, emoji:'⏸️', color:'red'},
-    {label:'Staff Groups', val:sgSet.size, sub:'unique groups', emoji:'👥', color:'purple'},
-    {label:'Routing Profiles', val:rpSet.size, sub:'unique profiles', emoji:'📡', color:'teal'},
-    {label:'Queues', val:qSet.size, sub:'unique queues', emoji:'📋', color:'amber'},
-    {label:'Voice Enabled', val:voiceCount.toLocaleString(), sub:'queue mappings', emoji:'📞', color:'blue'},
-    {label:'Chat Enabled', val:chatCount.toLocaleString(), sub:'queue mappings', emoji:'💬', color:'green'},
+    {key:'total',   label:'Total Mappings',   val:total.toLocaleString(),        sub:'routing entries',                                    emoji:'🗺️', color:'blue'},
+    {key:'active',  label:'Active',            val:active.toLocaleString(),       sub:`${total?Math.round(active/total*100):0}% of total`,   emoji:'✅', color:'green'},
+    {key:'inactive',label:'Inactive',          val:inactive.toLocaleString(),     sub:`${total?Math.round(inactive/total*100):0}% of total`, emoji:'⏸️', color:'red'},
+    {key:'sg',      label:'Staff Groups',      val:sgSet.size,                    sub:'unique groups',                                       emoji:'👥', color:'purple'},
+    {key:'rp',      label:'Routing Profiles',  val:rpSet.size,                    sub:'unique profiles',                                     emoji:'📡', color:'teal'},
+    {key:'q',       label:'Queues',            val:qSet.size,                     sub:'unique queues',                                       emoji:'📋', color:'amber'},
+    {key:'voice',   label:'Voice Enabled',     val:voiceCount.toLocaleString(),   sub:'queue mappings',                                      emoji:'📞', color:'blue'},
+    {key:'chat',    label:'Chat Enabled',      val:chatCount.toLocaleString(),    sub:'queue mappings',                                      emoji:'💬', color:'green'},
   ];
 
   var isIntuit = document.documentElement.getAttribute('data-theme')==='intuit';
   document.getElementById('map-kpis').innerHTML = kpis.map(k=>`
-    <div class="kpi-card ${k.color}">
+    <div class="kpi-card ${k.color}" onclick="openMapKpiModal('${k.key}')" title="Click to view these records" style="cursor:pointer">
       ${isIntuit?`<span class="kpi-emoji">${k.emoji}</span>`:''}
       <div class="kpi-label">${k.label}</div>
       <div class="kpi-val" style="font-size:${String(k.val).length>6?'18px':'28px'}">${k.val}</div>
@@ -7561,6 +7577,119 @@ function mapToggleRow(idx) {
 }
 function mapPrevPage() { if(mapPage>0){mapPage--;mapExpandedRow=null;renderMapTable();} }
 function mapNextPage() { var tp=Math.ceil(mapFiltered.length/MAP_PAGE_SIZE); if(mapPage<tp-1){mapPage++;mapExpandedRow=null;renderMapTable();} }
+function openMapKpiModal(key) {
+  var rows = [], title = '', meta = '';
+
+  if (key === 'total') {
+    rows = mapFiltered;
+    title = 'All Routing Mappings';
+    meta  = rows.length.toLocaleString() + ' records in current filter';
+  } else if (key === 'active') {
+    rows = mapFiltered.filter(function(r){ return r[MI.status]===1; });
+    title = 'Active Mappings';
+    meta  = rows.length.toLocaleString() + ' active routing entries';
+  } else if (key === 'inactive') {
+    rows = mapFiltered.filter(function(r){ return r[MI.status]!==1; });
+    title = 'Inactive Mappings';
+    meta  = rows.length.toLocaleString() + ' inactive routing entries';
+  } else if (key === 'sg') {
+    var sgSeen = new Set();
+    rows = mapFiltered.filter(function(r){ var v=mapGet(r,'sg'); if(!v||sgSeen.has(v)) return false; sgSeen.add(v); return true; });
+    rows.sort(function(a,b){ return (mapGet(a,'sg')||'').localeCompare(mapGet(b,'sg')||''); });
+    title = 'Staff Groups';
+    meta  = rows.length.toLocaleString() + ' unique staff groups';
+  } else if (key === 'rp') {
+    var rpSeen = new Set();
+    rows = mapFiltered.filter(function(r){ var v=mapGet(r,'rp'); if(!v||rpSeen.has(v)) return false; rpSeen.add(v); return true; });
+    rows.sort(function(a,b){ return (mapGet(a,'rp')||'').localeCompare(mapGet(b,'rp')||''); });
+    title = 'Routing Profiles';
+    meta  = rows.length.toLocaleString() + ' unique routing profiles';
+  } else if (key === 'q') {
+    var qSeen = new Set();
+    rows = mapFiltered.filter(function(r){ var v=mapGet(r,'q'); if(!v||qSeen.has(v)) return false; qSeen.add(v); return true; });
+    rows.sort(function(a,b){ return (mapGet(a,'q')||'').localeCompare(mapGet(b,'q')||''); });
+    title = 'Queues';
+    meta  = rows.length.toLocaleString() + ' unique queues';
+  } else if (key === 'voice') {
+    rows = mapFiltered.filter(function(r){ return r[MI.qV]===1; });
+    title = 'Voice-Enabled Queue Mappings';
+    meta  = rows.length.toLocaleString() + ' mappings with Voice enabled at queue level';
+  } else if (key === 'chat') {
+    rows = mapFiltered.filter(function(r){ return r[MI.qC]===1; });
+    title = 'Chat-Enabled Queue Mappings';
+    meta  = rows.length.toLocaleString() + ' mappings with Chat enabled at queue level';
+  }
+
+  document.getElementById('kpiModalTitle').textContent = title;
+  document.getElementById('kpiModalMeta').textContent  = meta;
+  document.getElementById('kpiModalFooter').textContent = rows.length.toLocaleString() + ' total records · click any row to expand details';
+  kpiModalExpandedRow = null;
+
+  document.getElementById('kpiModalBody').innerHTML = rows.length === 0
+    ? '<div class="empty">No records match this filter.</div>'
+    : rows.map(function(row, i) {
+        var rp  = mapGet(row,'rp') || '—';
+        var q   = mapGet(row,'q')  || '—';
+        var sg  = mapGet(row,'sg') || '—';
+        var fg  = mapGet(row,'fg') || '—';
+        var status = row[MI.status]===1;
+        var enV = row[MI.enV]===1, enC = row[MI.enC]===1, enT = row[MI.enT]===1;
+        var qV  = row[MI.qV]===1,  qC  = row[MI.qC]===1,  qT  = row[MI.qT]===1;
+        var sla = row[MI.sla] ? row[MI.sla]+'s' : '—';
+        var eff = row[MI.effTill] || '—';
+        var sup = mapSupply(sg);
+
+        var channels = [];
+        if (enV) channels.push('Voice'); if (enC) channels.push('Chat'); if (enT) channels.push('Task');
+
+        var expandContent =
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:10px">' +
+            '<div><div class="expand-meta-key">Routing Profile</div><div class="expand-meta-val" style="font-size:11px;word-break:break-all">' + rp + '</div></div>' +
+            '<div><div class="expand-meta-key">Queue</div><div class="expand-meta-val" style="font-size:11px;word-break:break-all">' + q + '</div></div>' +
+            '<div><div class="expand-meta-key">Staff Group</div><div class="expand-meta-val" style="font-size:11px">' + sg + '</div></div>' +
+            '<div><div class="expand-meta-key">Forecast Group</div><div class="expand-meta-val" style="font-size:11px">' + fg + '</div></div>' +
+            '<div><div class="expand-meta-key">RP Channels</div><div class="expand-meta-val">' + (channels.join(', ') || '—') + '</div></div>' +
+            '<div><div class="expand-meta-key">Target SLA</div><div class="expand-meta-val">' + sla + '</div></div>' +
+            '<div><div class="expand-meta-key">Q-Voice / Q-Chat / Q-Task</div><div class="expand-meta-val">' +
+              (qV?'✅':'❌') + ' / ' + (qC?'✅':'❌') + ' / ' + (qT?'✅':'❌') +
+            '</div></div>' +
+            '<div><div class="expand-meta-key">Effective Till</div><div class="expand-meta-val">' + eff + '</div></div>' +
+          '</div>' +
+          (sup && (sup.prac || sup.eco || sup.tier || sup.cty) ?
+            '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px">' +
+              [['Practice',sup.prac],['Ecosystem',sup.eco],['Tier',sup.tier],
+               ['Country',sup.cty],['Service Type',sup.st],['Specialization',sup.ss]]
+              .map(function(pair){
+                return '<div style="background:var(--bg2);border-radius:5px;padding:5px 8px">' +
+                  '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">' + pair[0] + '</div>' +
+                  '<div style="font-size:11px;font-weight:600;color:var(--text1)">' + (pair[1]||'—') + '</div>' +
+                '</div>';
+              }).join('') +
+            '</div>' : '');
+
+        return '<div class="kpi-modal-row">' +
+          '<div class="kpi-modal-main" onclick="toggleKpiModalRow(' + i + ')" style="display:grid;grid-template-columns:1fr 1fr 0.8fr 0.5fr 0.4fr auto;align-items:center;gap:8px;cursor:pointer">' +
+            '<div class="cell-mb" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + sg + '">' + sg + '</div>' +
+            '<div class="cell-mb" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text3)" title="' + q + '">' + q + '</div>' +
+            '<div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (channels.join(', ')||'—') + '">' + (channels.join(', ')||'—') + '</div>' +
+            '<div>' + (status ? '<span class="badge badge-yes" style="font-size:10px">Active</span>' : '<span class="badge badge-no" style="font-size:10px">Inactive</span>') + '</div>' +
+            '<div style="font-size:11px;color:var(--text3)">' + sla + '</div>' +
+            '<div><span class="chev" id="kchev-' + i + '">▾</span></div>' +
+          '</div>' +
+          '<div class="kpi-modal-expand" id="kexp-' + i + '">' + expandContent + '</div>' +
+        '</div>';
+      }).join('');
+
+  document.getElementById('kpiModal').classList.add('open');
+  document.getElementById('kpiModal').dataset.mode = 'mapping';
+  // Swap column headers to match mapping data
+  var hdr = document.getElementById('kpiModalColHeaders');
+  hdr.innerHTML = '<span>Staff Group</span><span>Queue</span><span>Channels</span><span>Status</span><span>SLA</span><span></span>';
+  hdr.style.gridTemplateColumns = '1fr 1fr 0.8fr 0.5fr 0.4fr auto';
+  hdr.style.gap = '8px';
+  hdr.className = 'kpi-modal-tbl-head';
+}
+
 function renderMapAll() { renderMapKPIs(); renderMapTable(); }
 function resetMapFilters() {
   ['ms-map-rp','ms-map-q','ms-map-sg','ms-map-fg','ms-map-ch','ms-map-prac','ms-map-stype','ms-map-spec','ms-map-eco','ms-map-tier','ms-map-cty'].forEach(id=>msReset&&msReset(id));
@@ -7650,3 +7779,389 @@ function resetMapFilters() {
     <button id="ai-send" onclick="aiSend()">&#x27A4;</button>
   </div>
 </div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     VISITOR CHECK-IN MODAL
+     Shows once per browser session. Stores name in localStorage.
+     Logs visitor_checkin event to GA4 with visitor_name dimension.
+════════════════════════════════════════════════════════════════ -->
+<style>
+#visitor-modal-overlay {
+  position: fixed; inset: 0; z-index: 999999;
+  background: rgba(0,0,0,.55);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+  animation: vmo-in .25s ease;
+}
+@keyframes vmo-in { from { opacity:0 } to { opacity:1 } }
+#visitor-modal {
+  background: var(--bg2, #1e2330);
+  border: 1px solid var(--border2, #2e3550);
+  border-radius: 14px;
+  padding: 32px 36px 28px;
+  width: 380px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; gap: 16px;
+  animation: vmo-up .28s cubic-bezier(.34,1.56,.64,1);
+  position: relative; z-index: 1000000;
+  isolation: isolate;
+}
+@keyframes vmo-up { from { transform:translateY(20px);opacity:0 } to { transform:none;opacity:1 } }
+#visitor-modal .vm-logo {
+  font-size: 11px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--text3, #6b7a99);
+}
+#visitor-modal .vm-logo span { color: var(--blue, #4f8ef7); }
+#visitor-modal h2 {
+  font-size: 20px; font-weight: 700; color: var(--text1, #e2e8f0);
+  margin: 0; line-height: 1.3;
+}
+#visitor-modal p {
+  font-size: 13px; color: var(--text3, #6b7a99);
+  margin: 0; line-height: 1.5;
+}
+#visitor-modal .vm-input-wrap {
+  display: flex; flex-direction: column; gap: 6px;
+}
+#visitor-modal label {
+  font-size: 11px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text3, #6b7a99);
+}
+#visitor-name-input {
+  background: #ffffff;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  color: #111827;
+  font-size: 14px; font-family: inherit;
+  padding: 10px 14px; outline: none; width: 100%; box-sizing: border-box;
+  transition: border-color .15s, box-shadow .15s;
+  pointer-events: auto;
+  user-select: text;
+  -webkit-user-select: text;
+  position: relative;
+  z-index: 1;
+}
+#visitor-name-input:focus { border-color: var(--blue, #4f8ef7); box-shadow: 0 0 0 3px rgba(79,142,247,.15); }
+#visitor-name-input::placeholder { color: #9ca3af; opacity: 1; }
+#visitor-modal .vm-actions {
+  display: flex; gap: 10px; margin-top: 4px;
+}
+#vm-submit {
+  flex: 1; background: var(--blue, #4f8ef7); color: #fff;
+  border: none; border-radius: 8px; padding: 11px 0;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background .15s, transform .1s;
+}
+#vm-submit:hover { background: #3d7aee; }
+#vm-submit:active { transform: scale(.97); }
+#vm-skip {
+  background: var(--bg3, #252b3b); color: var(--text3, #6b7a99);
+  border: 1px solid var(--border, #232940);
+  border-radius: 8px; padding: 11px 18px;
+  font-size: 13px; cursor: pointer; transition: background .15s;
+}
+#vm-skip:hover { background: var(--bg2, #1e2330); color: var(--text2, #a0aec0); }
+#visitor-modal .vm-note {
+  font-size: 11px; color: var(--text3, #6b7a99);
+  opacity: .7; text-align: center;
+}
+/* Visitor badge shown in header after sign-in */
+#visitor-badge {
+  display: none;
+  align-items: center; gap: 7px;
+  background: var(--bg3, #252b3b);
+  border: 1px solid var(--border, #232940);
+  border-radius: 20px;
+  padding: 4px 12px 4px 8px;
+  font-size: 12px; font-weight: 500;
+  color: var(--text2, #a0aec0);
+  cursor: pointer; white-space: nowrap;
+}
+#visitor-badge .vb-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green, #10b981);
+  flex-shrink: 0;
+}
+#visitor-badge:hover { border-color: var(--border2, #2e3550); }
+/* Visitor log panel */
+#visitor-log-panel {
+  display: none; position: fixed;
+  top: 60px; right: 16px; z-index: 999998;
+  width: 300px; max-height: 420px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.15);
+  overflow: hidden; flex-direction: column;
+}
+#visitor-log-panel.open { display: flex; }
+#vlp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid #e5e7eb;
+}
+#vlp-header h4 {
+  font-size: 13px; font-weight: 700; color: #111827; margin: 0;
+}
+#vlp-header span {
+  font-size: 11px; color: #6b7280;
+  background: #f3f4f6; padding: 2px 8px; border-radius: 99px;
+}
+#vlp-close {
+  background: none; border: none; color: #6b7280;
+  cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1;
+}
+#vlp-close:hover { color: #111827; }
+#vlp-list {
+  overflow-y: auto; flex: 1; padding: 8px 0;
+}
+.vlp-entry {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px; transition: background .1s;
+}
+.vlp-entry:hover { background: #f9fafb; }
+.vlp-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue, #4f8ef7), var(--purple, #7c3aed));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.vlp-info { flex: 1; min-width: 0; }
+.vlp-name {
+  font-size: 13px; font-weight: 600; color: #111827;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.vlp-time { font-size: 11px; color: #6b7280; margin-top: 1px; }
+#vlp-empty {
+  padding: 24px 16px; text-align: center;
+  font-size: 13px; color: #6b7280;
+}
+#vlp-footer {
+  padding: 10px 16px; border-top: 1px solid #e5e7eb;
+  font-size: 11px; color: #9ca3af;
+  text-align: center;
+}
+</style>
+
+<!-- Modal HTML -->
+<div id="visitor-modal-overlay" style="display:none">
+  <div id="visitor-modal" role="dialog" aria-modal="true" aria-labelledby="vm-title">
+    <div class="vm-logo">GBSG <span>Operations</span></div>
+    <h2 id="vm-title">Welcome 👋</h2>
+    <p>Please enter your name so we can track who's viewing the dashboard today.</p>
+    <div class="vm-input-wrap">
+      <label for="visitor-name-input">Your Name</label>
+      <input id="visitor-name-input" type="text" placeholder="e.g. Carter Bishara" maxlength="60"
+        autocomplete="off" spellcheck="false"
+        onkeydown="if(event.key==='Enter')visitorSubmit()">
+    </div>
+    <div class="vm-actions">
+      <button id="vm-submit" onclick="visitorSubmit()">Check In →</button>
+      <button id="vm-skip" onclick="visitorSkip()">Skip</button>
+    </div>
+    <div class="vm-note">Your name is stored locally and only used for this session's analytics.</div>
+  </div>
+</div>
+
+<!-- Visitor log panel (opened by clicking badge) -->
+<div id="visitor-log-panel">
+  <div id="vlp-header">
+    <h4>👥 Today's Visitors</h4>
+    <span id="vlp-count">0</span>
+    <button id="vlp-close" onclick="toggleVisitorLog()" title="Close">✕</button>
+  </div>
+  <div id="vlp-list"><div id="vlp-empty">No visitors logged yet.</div></div>
+  <div id="vlp-footer">Stored locally · resets at midnight</div>
+</div>
+
+<script>
+// ── Visitor Check-In System ──────────────────────────────────────────────────
+(function() {
+  var STORAGE_KEY   = 'gbsg_visitor_log_v1';  // localStorage key for visitor log
+  var SESSION_KEY   = 'gbsg_visitor_session';  // sessionStorage key (one prompt per tab)
+  var MODAL_DELAY   = 800;                     // ms after load before modal appears
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  function todayKey() {
+    return new Date().toISOString().slice(0, 10); // "2026-07-11"
+  }
+
+  function getLog() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      var data = raw ? JSON.parse(raw) : {};
+      // Prune old days (keep only last 30)
+      var keys = Object.keys(data).sort();
+      if (keys.length > 30) keys.slice(0, keys.length - 30).forEach(function(k){ delete data[k]; });
+      return data;
+    } catch(e) { return {}; }
+  }
+
+  function saveLog(data) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+  }
+
+  function formatTime(iso) {
+    try {
+      var d = new Date(iso);
+      return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    } catch(e) { return ''; }
+  }
+
+  function initials(name) {
+    return name.trim().split(/\s+/).map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+  }
+
+  // ── Modal show/hide ───────────────────────────────────────────────────────
+  function showModal() {
+    var overlay = document.getElementById('visitor-modal-overlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      setTimeout(function(){
+        var inp = document.getElementById('visitor-name-input');
+        if (inp) inp.focus();
+      }, 50);
+    }
+  }
+
+  function hideModal() {
+    var overlay = document.getElementById('visitor-modal-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  // ── Log a visitor ──────────────────────────────────────────────────────────
+  function logVisitor(name) {
+    var data  = getLog();
+    var today = todayKey();
+    if (!data[today]) data[today] = [];
+
+    var entry = { name: name, time: new Date().toISOString() };
+    data[today].push(entry);
+    saveLog(data);
+
+    // Fire GA4 event
+    if (typeof gtag === 'function') {
+      gtag('event', 'visitor_checkin', {
+        event_category: 'engagement',
+        visitor_name: name,
+        visitor_date: today
+      });
+      // Also set as user property so GA4 can segment reports
+      gtag('set', 'user_properties', { visitor_name: name });
+    }
+
+    // Mark this session so modal doesn't re-show on refresh
+    try { sessionStorage.setItem(SESSION_KEY, name); } catch(e) {}
+
+    // Show the badge in the header
+    showBadge(name);
+  }
+
+  // ── Submit / Skip handlers ────────────────────────────────────────────────
+  window.visitorSubmit = function() {
+    var inp  = document.getElementById('visitor-name-input');
+    var name = inp ? inp.value.trim() : '';
+    if (!name) {
+      if (inp) { inp.style.borderColor = 'var(--red, #ef4444)'; inp.focus(); }
+      setTimeout(function(){ if(inp) inp.style.borderColor = ''; }, 1500);
+      return;
+    }
+    hideModal();
+    logVisitor(name);
+  };
+
+  window.visitorSkip = function() {
+    hideModal();
+    try { sessionStorage.setItem(SESSION_KEY, '__skipped__'); } catch(e) {}
+    // Still show a minimal badge so they can open the log
+    showBadge(null);
+  };
+
+  // ── Badge ─────────────────────────────────────────────────────────────────
+  function showBadge(name) {
+    // Inject badge into header-right area
+    var badge = document.getElementById('visitor-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.id = 'visitor-badge';
+      badge.title = 'Click to see today\'s visitors';
+      badge.innerHTML = '<div class="vb-dot"></div><span id="vb-name"></span>';
+      badge.onclick = toggleVisitorLog;
+      // Insert into .header-right before the theme toggle if possible
+      var hr = document.querySelector('.header-right');
+      if (hr) hr.insertBefore(badge, hr.firstChild);
+    }
+    badge.style.display = 'flex';
+    var nameEl = document.getElementById('vb-name');
+    if (nameEl) nameEl.textContent = name ? name.split(' ')[0] : 'Anonymous';
+    renderVisitorLog();
+  }
+
+  // ── Visitor log panel ─────────────────────────────────────────────────────
+  window.toggleVisitorLog = function() {
+    var panel = document.getElementById('visitor-log-panel');
+    if (panel) panel.classList.toggle('open');
+    if (panel && panel.classList.contains('open')) renderVisitorLog();
+  };
+
+  function renderVisitorLog() {
+    var data    = getLog();
+    var today   = todayKey();
+    var entries = (data[today] || []).slice().reverse(); // newest first
+    var list    = document.getElementById('vlp-list');
+    var empty   = document.getElementById('vlp-empty');
+    var count   = document.getElementById('vlp-count');
+
+    if (!list) return;
+    if (count) count.textContent = entries.length;
+
+    if (entries.length === 0) {
+      list.innerHTML = '<div id="vlp-empty">No visitors logged yet today.</div>';
+      return;
+    }
+
+    list.innerHTML = entries.map(function(e) {
+      return '<div class="vlp-entry">' +
+        '<div class="vlp-avatar">' + initials(e.name || '?') + '</div>' +
+        '<div class="vlp-info">' +
+          '<div class="vlp-name">' + e.name + '</div>' +
+          '<div class="vlp-time">Checked in at ' + formatTime(e.time) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // ── Init: show modal unless already seen this session ─────────────────────
+  function init() {
+    var seen = '';
+    try { seen = sessionStorage.getItem(SESSION_KEY) || ''; } catch(e) {}
+
+    if (seen && seen !== '') {
+      // Already checked in or skipped this session — just show badge silently
+      if (seen !== '__skipped__') showBadge(seen);
+      else showBadge(null);
+    } else {
+      // First visit this session — show modal after a short delay
+      setTimeout(showModal, MODAL_DELAY);
+    }
+  }
+
+  // Run after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // Close visitor log when clicking outside
+  document.addEventListener('click', function(e) {
+    var panel = document.getElementById('visitor-log-panel');
+    var badge = document.getElementById('visitor-badge');
+    if (panel && panel.classList.contains('open') &&
+        !panel.contains(e.target) && e.target !== badge && !badge.contains(e.target)) {
+      panel.classList.remove('open');
+    }
+  });
+
+})();
+</script>
