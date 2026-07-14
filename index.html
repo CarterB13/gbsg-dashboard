@@ -1292,7 +1292,7 @@ canvas:hover { opacity: 0.9; }
     </div>
     <div class="tab" onclick="switchTab('misroutes')" id="tab-misroutes">Misroutes <span class="tab-count" id="tc-misroutes">7,026</span></div>
         <div class="tab" onclick="switchTab('ooh')" id="tab-ooh">Out of HOO <span class="tab-count" id="tc-ooh">270</span></div>
-        <div class="tab" onclick="switchTab('jira')" id="tab-jira">Jira Board <span class="tab-count" id="tc-jira">174</span></div>
+        <div class="tab" onclick="switchTab('jira')" id="tab-jira">Jira Board <span class="tab-count" id="tc-jira">755</span></div>
         <div class="tab" onclick="switchTab('ds')" id="tab-ds">Demand/Supply <span class="tab-count" id="tc-ds">—</span></div>
     <div class="tab" onclick="switchTab('mapping')" id="tab-mapping">🗺️ GBSG Mapping</div>
   </div>
@@ -4662,7 +4662,7 @@ function renderReportingPeriods() {
     var mx = _rpMax(t.arr, t.key);
     var count = t.arr.length.toLocaleString();
     var meta = t.jira
-      ? (_fmtD(mx) + ' &nbsp;·&nbsp; MOEO &nbsp;·&nbsp; ' + count + ' ' + t.unit)
+      ? (_fmtD(mn) + ' – ' + _fmtD(mx) + ' (created) &nbsp;·&nbsp; Updated ' + _fmtD(_rpMax(t.arr, 'updated')) + ' &nbsp;·&nbsp; MOEO &nbsp;·&nbsp; ' + count + ' ' + t.unit)
       : (_fmtD(mn) + ' – ' + _fmtD(mx) + ' &nbsp;·&nbsp; ' + count + ' ' + t.unit);
     html += '<div style="' + rowStyle + '">' +
             '<span style="font-size:14px">' + t.emoji + '</span>' +
@@ -5440,6 +5440,7 @@ function renderOohAll() { renderOohKPIs(); renderOohCharts(); renderOohInsights(
 // ── JIRA TAB ──
 // ══════════════════════════════════════════
 let jiraFiltered = [...JIRA_DATA];
+(function(){ var tc = document.getElementById('tc-jira'); if (tc) tc.textContent = JIRA_DATA.length; })();
 let jiraPage = 0;
 const JIRA_PAGE = 25;
 let jiraExpandedKey = null;
