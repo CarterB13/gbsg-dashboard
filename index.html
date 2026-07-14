@@ -6121,6 +6121,15 @@ function _dsAvg(arr,f){var v=arr.map(function(r){return _sf(r[f]);}).filter(func
 function _dsSum(arr,f){return arr.reduce(function(s,r){return s+(_sf(r[f])||0);},0);}
 function _dsMin(arr,f){return arr.map(function(r){return r[f];}).filter(Boolean).sort()[0]||'';}
 function _dsMax(arr,f){return arr.map(function(r){return r[f];}).filter(Boolean).sort().slice(-1)[0]||'';}
+function _dsSgEco(name){
+  if(!name)return '';
+  if(name.startsWith('MC_NR_OL_'))return 'Mailchimp';
+  if(name.startsWith('SBG_US_DT_'))return 'Desktop';
+  if(name.startsWith('SBG_QBL_')||name.startsWith('SBSEG_QBL_'))return 'QB Live';
+  if(name.indexOf(' MM')!==-1)return 'Mid-Market';
+  if(name.indexOf('_AG')!==-1)return 'Accountant';
+  return 'Online';
+}
 function _dsPct(v){return v!=null?(v*100).toFixed(1)+'%':'—';}
 function _dsNum(v){return v!=null?Number(v).toLocaleString():'—';}
 function _dsGrp(arr,key){
@@ -6185,8 +6194,10 @@ function applyDsFilters(){
   var occF=(document.getElementById('ds-s-occ-filter')||{}).value||'';
   var npF=(document.getElementById('ds-s-np-filter')||{}).value||'';
 
+  var sgEcos = sgf.length ? [...new Set(sgf.map(_dsSgEco))] : [];
   _dsDEf=DS_DE.filter(function(r){
     if(ef.length&&!ef.includes(r['Customer Eco Parent']))return false;
+    if(sgEcos.length&&!sgEcos.includes(r['Customer Eco Parent']))return false;
     if(frm&&r['Date']<frm)return false;
     if(tot&&r['Date']>tot)return false;
     var sl=_sf(r['Service Level']);
@@ -6205,6 +6216,7 @@ function applyDsFilters(){
   });
   _dsSGf=DS_SG.filter(function(r){
     if(sgf.length&&!sgf.includes(r['Primary Staff Group']))return false;
+    if(ef.length&&!ef.includes(_dsSgEco(r['Primary Staff Group'])))return false;
     if(frm&&r['Date']<frm)return false;
     if(tot&&r['Date']>tot)return false;
     return true;
@@ -6394,7 +6406,9 @@ function _dsInsights(){
   var e6=document.getElementById('ds-list-oitf');
   if(e6)e6.innerHTML=top(sg,'avgOITF',10).map(function(s,i){return _iRow(i,s.k,(s.avgOITF||0).toFixed(1)+'%','var(--purple)');}).join('');
 
-  var dayMap={};_dsDEf.forEach(function(r){if(!dayMap[r['Date']])dayMap[r['Date']]={s:0,n:0};var v=_sf(r['Service Level']);if(v!==null){dayMap[r['Date']].s+=v;dayMap[r['Date']].n++;}});
+  var _sgfActive = (msGetValues('ms-ds-d-sg')||[]).length > 0;
+  var dayMap={};
+  (_sgfActive ? _dsSGf : _dsDEf).forEach(function(r){if(!dayMap[r['Date']])dayMap[r['Date']]={s:0,n:0};var v=_sf(r['Service Level']);if(v!==null){dayMap[r['Date']].s+=v;dayMap[r['Date']].n++;}});
   var dR=Object.entries(dayMap).map(function(e){return{d:e[0],sl:e[1].n?e[1].s/e[1].n:0};}).sort(function(a,b){return b.sl-a.sl;});
   var e7=document.getElementById('ds-list-bestdays');
   if(e7)e7.innerHTML=dR.slice(0,5).map(function(s,i){return _iRow(i,s.d,_dsPct(s.sl),'var(--green)');}).join('');
