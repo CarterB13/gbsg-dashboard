@@ -1216,37 +1216,7 @@ canvas:hover { opacity: 0.9; }
         <button class="export-btn" onclick="toggleExportMenu(event)" id="exportBtn">
           ↓ Export
         </button>
-        <div class="export-menu" id="exportMenu">
-          <button class="export-option" onclick="exportCSV('callouts')">
-            <span class="export-option-icon">📋</span> Call outs — CSV
-          </button>
-          <button class="export-option" onclick="exportCSV('defcons')">
-            <span class="export-option-icon">📋</span> Defcons — CSV
-          </button>
-          <button class="export-option" onclick="exportCSV('prep')">
-            <span class="export-option-icon">📋</span> Prep time — CSV
-          </button>
-          <div class="export-divider"></div>
-          <button class="export-option" onclick="exportCSV('callouts-filtered')">
-            <span class="export-option-icon">🔍</span> Filtered call outs — CSV
-          </button>
-          <button class="export-option" onclick="exportCSV('defcons-filtered')">
-            <span class="export-option-icon">🔍</span> Filtered defcons — CSV
-          </button>
-          <button class="export-option" onclick="exportCSV('prep-filtered')">
-            <span class="export-option-icon">🔍</span> Filtered prep time — CSV
-          </button>
-          <div class="export-divider"></div>
-          <button class="export-option" onclick="exportJSON('callouts')">
-            <span class="export-option-icon">{ }</span> Call outs — JSON
-          </button>
-          <button class="export-option" onclick="exportJSON('defcons')">
-            <span class="export-option-icon">{ }</span> Defcons — JSON
-          </button>
-          <button class="export-option" onclick="exportJSON('prep')">
-            <span class="export-option-icon">{ }</span> Prep time — JSON
-          </button>
-        </div>
+        <div class="export-menu" id="exportMenu"></div>
       </div>
       <div class="header-meta" style="position:relative">
         <button id="date-range-btn" onclick="toggleDateDropdown()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.85);font-size:11px;display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;transition:background 0.15s" onmouseenter="this.style.background='rgba(255,255,255,0.1)'" onmouseleave="this.style.background='none'">
@@ -4529,6 +4499,7 @@ function openIncKpiModal(kpi) {
 // --- EXPORT ---
 function toggleExportMenu(e) {
   e.stopPropagation();
+  renderExportMenu();
   document.getElementById('exportMenu').classList.toggle('open');
 }
 document.addEventListener('click', () => document.getElementById('exportMenu').classList.remove('open'));
@@ -4552,48 +4523,90 @@ function downloadFile(content, filename, mime) {
   document.getElementById('exportMenu').classList.remove('open');
 }
 
-function exportCSV(target) {
-  if (target === 'callouts' || target === 'callouts-filtered') {
-    const data = target === 'callouts' ? CALLOUTS : coFiltered;
-    const fields = ['d','tm','t','p','esc','escTo','mb','resp','n'];
-    const headers = ['Date','Time','Type','Partner','Escalated','EscalatedTo','MadeBy','PartnerResponse','Notes'];
-    const csv = headers.join(',') + '\n' + data.map(r =>
-      headers.map((h,i) => {
-        const v = r[fields[i]] == null ? '' : String(r[fields[i]]);
-        return v.includes(',') || v.includes('"') || v.includes('\n') ? '"'+v.replace(/"/g,'""')+'"' : v;
-      }).join(',')
-    ).join('\n');
-    downloadFile(csv, `GBSG_CallOuts_${target === 'callouts-filtered' ? 'Filtered_' : ''}${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
-  } else if (target === 'prep' || target === 'prep-filtered') {
-    const data = target === 'prep' ? PREP : prepFiltered;
-    const headers = ['Date','Time','PrepTime','SubmittedBy','Queue1','Queue2','Queue3','Queue4','Queue5','Queue6','Queue7','Queue8'];
-    const csv = headers.join(',') + '\n' + data.map(r => {
-      const base = [r.d, r.tm, r.prep, r.by];
-      const queues = Array.from({length: 8}, (_, i) => r.queues[i] || '');
-      return [...base, ...queues].map(v => {
-        const s = v == null ? '' : String(v);
-        return s.includes(',') || s.includes('"') || s.includes('\n') ? '"'+s.replace(/"/g,'""')+'"' : s;
-      }).join(',');
-    }).join('\n');
-    downloadFile(csv, `GBSG_PrepTime_${target === 'prep-filtered' ? 'Filtered_' : ''}${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
-  } else {
-    const data = target === 'defcons' ? DEFCONS : dcFiltered;
-    const fields = ['sg','level','driver','start','revert','by'];
-    const headers = ['StaffGroup','Level','Driver','StartTime','RevertTime','SubmittedBy'];
-    const csv = headers.join(',') + '\n' + data.map(r =>
-      headers.map((h,i) => {
-        const v = r[fields[i]] == null ? '' : String(r[fields[i]]);
-        return v.includes(',') || v.includes('"') || v.includes('\n') ? '"'+v.replace(/"/g,'""')+'"' : v;
-      }).join(',')
-    ).join('\n');
-    downloadFile(csv, `GBSG_Defcons_${target === 'defcons-filtered' ? 'Filtered_' : ''}${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
-  }
+// ── EXPORT SYSTEM (all tabs) ──────────────────────────
+function _exFields(rows, defs) {
+  const headers = defs.map(d => d.h);
+  const body = rows.map(r => defs.map(d => {
+    let v = typeof d.k === 'function' ? d.k(r) : r[d.k];
+    if (Array.isArray(v)) v = v.filter(Boolean).join('; ');
+    v = v == null ? '' : String(v);
+    return v.includes(',') || v.includes('"') || v.includes('\n') ? '"'+v.replace(/"/g,'""')+'"' : v;
+  }).join(',')).join('\n');
+  return headers.join(',') + '\n' + body;
 }
 
-function exportJSON(target) {
-  const data = target === 'callouts' ? CALLOUTS : target === 'defcons' ? DEFCONS : PREP;
-  const fname = `GBSG_${target === 'callouts' ? 'CallOuts' : target === 'defcons' ? 'Defcons' : 'PrepTime'}_${new Date().toISOString().slice(0,10)}.json`;
-  downloadFile(JSON.stringify(data, null, 2), fname, 'application/json');
+const EXPORT_CONFIG = {
+  callouts: { label: 'Call Outs', all: () => CALLOUTS, filtered: () => coFiltered,
+    fields: [{k:'d',h:'Date'},{k:'tm',h:'Time'},{k:'t',h:'Type'},{k:'p',h:'Partner'},{k:'esc',h:'Escalated'},{k:'escTo',h:'EscalatedTo'},{k:'mb',h:'MadeBy'},{k:'resp',h:'PartnerResponse'},{k:'n',h:'Notes'}] },
+  defcons: { label: 'Defcons', all: () => DEFCONS, filtered: () => dcFiltered,
+    fields: [{k:'sg',h:'StaffGroup'},{k:'level',h:'Level'},{k:'driver',h:'Driver'},{k:'start',h:'StartTime'},{k:'revert',h:'RevertTime'},{k:'by',h:'SubmittedBy'}] },
+  prep: { label: 'Prep Time', all: () => PREP, filtered: () => prepFiltered,
+    fields: [{k:'d',h:'Date'},{k:'tm',h:'Time'},{k:'prep',h:'PrepTime'},{k:'by',h:'SubmittedBy'},
+      {k:r=>r.queues[0]||'',h:'Queue1'},{k:r=>r.queues[1]||'',h:'Queue2'},{k:r=>r.queues[2]||'',h:'Queue3'},{k:r=>r.queues[3]||'',h:'Queue4'},
+      {k:r=>r.queues[4]||'',h:'Queue5'},{k:r=>r.queues[5]||'',h:'Queue6'},{k:r=>r.queues[6]||'',h:'Queue7'},{k:r=>r.queues[7]||'',h:'Queue8'}] },
+  inc: { label: 'INC / INV', all: () => INC_DATA, filtered: () => incFiltered,
+    fields: [{k:'type',h:'Type'},{k:'ibc',h:'IBC'},{k:'id',h:'ID'},{k:'service',h:'Service'},{k:'csStart',h:'CSStart'},{k:'csEnd',h:'CSEnd'},{k:'status',h:'Status'},{k:'impact',h:'Impact'},{k:'priority',h:'Priority'},{k:'driver',h:'Driver'},{k:'summary',h:'Summary'},{k:'caseVolume',h:'CaseVolume'}] },
+  misroutes: { label: 'Misroutes', all: () => MR_DATA, filtered: () => mrFiltered,
+    fields: [{k:'d',h:'Date'},{k:'contactId',h:'ContactId'},{k:'channel',h:'Channel'},{k:'queue',h:'Queue'},{k:'qshort',h:'QueueShort'},{k:'product',h:'Product'},{k:'partner',h:'Partner'},{k:'site',h:'Site'},{k:'agent',h:'Agent'},{k:'expertId',h:'ExpertId'},{k:'duration',h:'Duration'},{k:'initTs',h:'InitTimestamp'},{k:'discTs',h:'DisconnectTimestamp'}] },
+  ooh: { label: 'Out of HOO', all: () => OOH_DATA, filtered: () => oohFiltered,
+    fields: [{k:'d',h:'Date'},{k:'tm',h:'Time'},{k:'queue',h:'Queue'},{k:'qshort',h:'QueueShort'},{k:'product',h:'Product'},{k:'channel',h:'Channel'},{k:'tod',h:'TimeOfDay'},{k:'contactId',h:'ContactId'},{k:'byFull',h:'PostedBy'}] },
+  jira: { label: 'Jira Board', all: () => JIRA_DATA, filtered: () => jiraFiltered,
+    fields: [{k:'key',h:'Key'},{k:'summary',h:'Summary'},{k:'status',h:'Status'},{k:'assignee',h:'Assignee'},{k:'reporter',h:'Reporter'},{k:'priority',h:'Priority'},{k:'type',h:'Type'},{k:'labels',h:'Labels'},{k:'duedate',h:'DueDate'},{k:'created',h:'Created'},{k:'updated',h:'Updated'},{k:'overdue',h:'Overdue'},{k:'parentKey',h:'ParentKey'},{k:'url',h:'URL'}] },
+  mapping: { label: 'Mapping', all: () => MAP_ROWS, filtered: () => mapFiltered, jsonOnly: true },
+  ds: { label: 'Demand/Supply', subsets: [
+      { key:'ds-demand-eco', label:'Demand (Ecosystem)', all: () => DS_DE, filtered: () => _dsDEf,
+        fields: ['Date','Customer Eco Parent','Offered','Handled','Service Level','AHT','Abandon Rate','Transfers','Offered ITF','AHT ITF'].map(f=>({k:f,h:f})) },
+      { key:'ds-demand-sg', label:'Demand (Staff Group)', all: () => DS_SG, filtered: () => _dsSGf,
+        fields: ['Date','Primary Staff Group','Offered','Handled','ASA','Service Level','AHT','Abandon Rate','Transfers','Offered ITF','AHT ITF'].map(f=>({k:f,h:f})) },
+      { key:'ds-supply-eco', label:'Supply (Ecosystem)', all: () => DS_SE, filtered: () => _dsSEf,
+        fields: ['Day','Expert Ecosystem Parent','2. Baseline Adjusted Productive Required (FTE)','Productive Scheduled (FTE)','Actual Prod FTE/Hours','Actual Net (FTE)','Actual Net % - (FTE)','Occupancy (FTE)'].map(f=>({k:f,h:f})) },
+      { key:'ds-supply-detail', label:'Supply (Staff Group Detail)', all: () => DS_SD, filtered: () => _dsSDf,
+        fields: ['Day','Staff Group','Partner','2. Baseline Adjusted Productive Required (FTE)','Productive Scheduled (FTE)','Actual Prod FTE/Hours','Actual Net (FTE)','Actual Net % - (FTE)','Occupancy (FTE)'].map(f=>({k:f,h:f})) },
+    ] },
+};
+
+function renderExportMenu() {
+  const menu = document.getElementById('exportMenu');
+  if (!menu) return;
+  const cfg = EXPORT_CONFIG[activeTab];
+  if (!cfg) { menu.innerHTML = '<div style="padding:10px;font-size:11px;color:var(--text3)">No export available for this tab</div>'; return; }
+
+  if (cfg.subsets) {
+    // Demand/Supply: multiple sub-datasets, filtered CSV/JSON only (each subset has its own filters)
+    menu.innerHTML = cfg.subsets.map((s, i) => {
+      const divider = i > 0 ? '<div class="export-divider"></div>' : '';
+      return divider +
+        '<button class="export-option" onclick="doExport(\'ds\',\'filtered\',\'csv\',' + i + ')"><span class="export-option-icon">🔍</span> ' + s.label + ' (filtered) — CSV</button>' +
+        '<button class="export-option" onclick="doExport(\'ds\',\'all\',\'csv\',' + i + ')"><span class="export-option-icon">📋</span> ' + s.label + ' (all) — CSV</button>' +
+        '<button class="export-option" onclick="doExport(\'ds\',\'filtered\',\'json\',' + i + ')"><span class="export-option-icon">{ }</span> ' + s.label + ' (filtered) — JSON</button>';
+    }).join('');
+    return;
+  }
+
+  const lbl = cfg.label;
+  let html = '';
+  html += '<button class="export-option" onclick="doExport(\''+activeTab+'\',\'all\',\'csv\')"><span class="export-option-icon">📋</span> '+lbl+' — CSV</button>';
+  html += '<button class="export-option" onclick="doExport(\''+activeTab+'\',\'filtered\',\'csv\')"><span class="export-option-icon">🔍</span> Filtered '+lbl+' — CSV</button>';
+  html += '<div class="export-divider"></div>';
+  html += '<button class="export-option" onclick="doExport(\''+activeTab+'\',\'all\',\'json\')"><span class="export-option-icon">{ }</span> '+lbl+' — JSON</button>';
+  html += '<button class="export-option" onclick="doExport(\''+activeTab+'\',\'filtered\',\'json\')"><span class="export-option-icon">{ }</span> Filtered '+lbl+' — JSON</button>';
+  menu.innerHTML = html;
+}
+
+function doExport(tabKey, scope, fmt, subsetIdx) {
+  const cfg = EXPORT_CONFIG[tabKey];
+  if (!cfg) return;
+  const source = subsetIdx != null ? cfg.subsets[subsetIdx] : cfg;
+  const data = scope === 'all' ? source.all() : source.filtered();
+  const label = (source.label || cfg.label).replace(/[^a-z0-9]+/gi, '');
+  const dateStr = new Date().toISOString().slice(0,10);
+  const scopeTag = scope === 'filtered' ? 'Filtered_' : '';
+  if (fmt === 'json' || cfg.jsonOnly) {
+    downloadFile(JSON.stringify(data, null, 2), `GBSG_${label}_${scopeTag}${dateStr}.json`, 'application/json');
+  } else {
+    const csv = _exFields(data, source.fields);
+    downloadFile(csv, `GBSG_${label}_${scopeTag}${dateStr}.csv`, 'text/csv');
+  }
 }
 
 
@@ -6248,6 +6261,7 @@ function applyDsFilters(){
   var fr=document.getElementById('ds-f-result');
   if(fr)fr.textContent=(_dsView==='demand'?_dsDEf.length+' eco / '+_dsSGf.length+' sg':_dsSEf.length+' eco / '+_dsSDf.length+' sg')+' records';
   renderDsAll();
+  if(typeof _dsSupplyView!=='undefined'&&_dsSupplyView==='outlook') _dsRenderOutlook();
 }
 
 function resetDsFilters(){
@@ -6517,7 +6531,25 @@ function dsSwitchSupplyView(v){
 }
 
 function _dsRenderOutlook(){
-  var gaps = typeof STAFFING_GAPS !== 'undefined' ? STAFFING_GAPS : [];
+  var allGaps = typeof STAFFING_GAPS !== 'undefined' ? STAFFING_GAPS : [];
+  var sef=msGetValues('ms-ds-s-eco')||[], pf=msGetValues('ms-ds-s-partner')||[], ssgf=msGetValues('ms-ds-s-sg')||[];
+  var frm=(document.getElementById('ds-f-from')||{}).value||'', tot=(document.getElementById('ds-f-to')||{}).value||'';
+  var npF=(document.getElementById('ds-s-np-filter')||{}).value||'';
+  function dayISO(d){ var p=d.split('/'); return '2026-'+p[0]+'-'+p[1]; }
+  var gaps = allGaps.filter(function(g){
+    if(sef.length&&!sef.includes(g.eco))return false;
+    if(pf.length&&!pf.includes(g.partner))return false;
+    if(ssgf.length&&!ssgf.includes(g.sg))return false;
+    var iso=dayISO(g.day);
+    if(frm&&iso<frm)return false;
+    if(tot&&iso>tot)return false;
+    var np=parseFloat(g.pct)/100;
+    if(npF==='gt100'&&(isNaN(np)||np<1.0))return false;
+    if(npF==='lt100'&&(isNaN(np)||np>=1.0))return false;
+    if(npF==='lt70'&&(isNaN(np)||np>=0.7))return false;
+    if(npF==='lt50'&&(isNaN(np)||np>=0.5))return false;
+    return true;
+  });
   var total=gaps.length, crit=gaps.filter(function(g){return g.cls==='tcrit';});
   var warn=gaps.filter(function(g){return g.cls==='twarn';});
   var low=gaps.filter(function(g){return g.cls==='tlow';});
