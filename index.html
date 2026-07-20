@@ -6801,6 +6801,22 @@ var _aiOpen = false;
 var _aiHistory = [];
 var _aiThinking = false;
 
+// ── AI BACKEND CONFIG ──
+// SECURITY NOTE: this dashboard previously shipped with a live Anthropic API key hardcoded
+// (base64-obfuscated, but trivially reversible) directly in this public JS file. Since the file
+// is deployed to a public URL, anyone viewing page source could extract and use that key on
+// your bill. That key has been removed and should be treated as compromised/rotated.
+//
+// To restore the assistant, set GBSG_AI_PROXY_URL below to a backend endpoint YOU control that
+// holds the real API key server-side (e.g. a small serverless function) and forwards the
+// request to https://api.anthropic.com/v1/messages. Never put a real API key back into this
+// client-side file.
+//
+// Until a proxy is set up, each person can optionally supply their OWN personal API key for
+// their own browser only (stored in their own localStorage, never sent anywhere but Anthropic)
+// by running in the browser console: localStorage.setItem('gbsg_ai_key', 'sk-ant-...')
+var GBSG_AI_PROXY_URL = ''; // e.g. 'https://your-proxy.example.com/api/gbsg-ai'
+
 function aiTogglePanel() {
   _aiOpen = !_aiOpen;
   gaEvent(_aiOpen ? 'ai_panel_open' : 'ai_panel_close', { event_category: 'ai_agent' });
@@ -6840,17 +6856,31 @@ function aiSend() {
   // Build context snapshot from live data
   var ctx = aiBuildContext(q);
 
-  // Call Claude API
-  var apiKey = localStorage.getItem('gbsg_ai_key') || atob('c2stYW50LWFwaTAzLTJ2Y0tYUVhWNDZaYTZFU3JOU0lqbWZ0MVY3ajhUUGVsMUdEeG5PNjFESXphUUtJcm5KQ3FtTmVnT1REbGlSNlBtNzBFTlAtUjlWODFnVHlXNUVRc3dBLW4tWWE3QUFB');
+  // Call Claude API — via a backend proxy if configured, else a personal key from
+  // localStorage, else show setup instructions instead of failing silently.
+  var apiKey = localStorage.getItem('gbsg_ai_key') || '';
+  var useProxy = !!GBSG_AI_PROXY_URL;
 
-  fetch('https://api.anthropic.com/v1/messages', {
+  if (!useProxy && !apiKey) {
+    aiShowTyping(false);
+    _aiThinking = false;
+    if (sendBtn) sendBtn.disabled = false;
+    aiAddMsg('bot', 'This assistant isn\'t connected yet. An admin can set GBSG_AI_PROXY_URL to a backend that holds the API key securely — putting a real key in this public file isn\'t safe. In the meantime, you can enter your own personal key below (stored only in your own browser):');
+    aiShowKeyPrompt();
+    return;
+  }
+
+  var endpoint = useProxy ? GBSG_AI_PROXY_URL : 'https://api.anthropic.com/v1/messages';
+  var headers = { 'Content-Type': 'application/json' };
+  if (!useProxy) {
+    headers['x-api-key'] = apiKey;
+    headers['anthropic-version'] = '2023-06-01';
+    headers['anthropic-dangerous-direct-browser-access'] = 'true';
+  }
+
+  fetch(endpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
+    headers: headers,
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: 1000,
@@ -6870,6 +6900,7 @@ function aiSend() {
       aiParseActions(reply, q);
     } else if (data.error) {
       aiAddMsg('bot', 'API error: ' + (data.error.message || 'Unknown error. Check your API key.'));
+      if (!useProxy && data.error.type === 'authentication_error') aiShowKeyPrompt();
     } else {
       aiAddMsg('bot', 'Sorry, I had trouble processing that. Please try again.');
     }
